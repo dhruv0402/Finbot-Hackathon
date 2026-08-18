@@ -46,9 +46,50 @@ async def test_llm_fallback():
     assert intent_res["entities"].get("capital") == 200000
     print(f"✅ Extracted entities: {intent_res['entities']}")
 
+from app.services.mpt_service import compute_efficient_frontier
+from app.services.stress_test_service import run_portfolio_stress_test
+from app.services.pdf_report_service import generate_institutional_report_html
+
+def test_mpt():
+    print("\n--- [TEST 5] Markowitz Efficient Frontier ---")
+    mpt_res = compute_efficient_frontier()
+    assert len(mpt_res["efficient_frontier"]) > 5
+    assert mpt_res["max_sharpe_portfolio"]["sharpe_ratio"] > 0
+    print(f"✅ MPT Tangency Portfolio Return {mpt_res['max_sharpe_portfolio']['expected_return_pct']}% with Sharpe {mpt_res['max_sharpe_portfolio']['sharpe_ratio']}")
+
+def test_stress_test():
+    print("\n--- [TEST 6] Historical Crash Stress Testing ---")
+    allocations = [
+        {"asset_class": "Equity Funds", "percentage": 0.40},
+        {"asset_class": "Debt Instruments", "percentage": 0.35},
+        {"asset_class": "Direct Equity", "percentage": 0.15},
+        {"asset_class": "Gold", "percentage": 0.10}
+    ]
+    st_res = run_portfolio_stress_test(500000, allocations)
+    assert len(st_res["stress_test_scenarios"]) == 3
+    print(f"✅ Evaluated 3 historical crash scenarios. 2008 Drawdown: ₹{st_res['stress_test_scenarios'][0]['drawdown_amount']:,.2f}")
+
+def test_pdf_report():
+    print("\n--- [TEST 7] PDF Report Generation ---")
+    data = {
+        "capital": 500000,
+        "risk_profile": "medium",
+        "projected_return_estimate": "10.8% p.a.",
+        "metrics": {"sharpe_ratio": 1.52, "annual_volatility_pct": 9.4},
+        "allocation": [{"asset_class": "Equity Funds", "percentage": 0.40, "amount": 200000}]
+    }
+    html = generate_institutional_report_html(data)
+    assert "FINBOT AI WEALTH DESK" in html
+    assert "₹500,000" in html
+    print("✅ HTML/PDF Wealth Planning Report generated successfully")
+
 if __name__ == "__main__":
     test_portfolio_math()
     test_monte_carlo()
     test_market_tickers()
     asyncio.run(test_llm_fallback())
-    print("\n🎉 ALL BACKEND TESTS PASSED!")
+    test_mpt()
+    test_stress_test()
+    test_pdf_report()
+    print("\n🎉 ALL BACKEND TESTS PASSED SUCCESSFULLY!")
+

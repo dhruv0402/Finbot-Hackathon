@@ -7,6 +7,7 @@ import { PortfolioDisplay } from './components/PortfolioDisplay';
 import { WealthSimulator } from './components/WealthSimulator';
 import { RiskQuizModal } from './components/RiskQuizModal';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { EfficientFrontierStressTest } from './components/EfficientFrontierStressTest';
 
 const AppWrapper = styled.div`
   display: flex;
@@ -144,7 +145,7 @@ function App() {
       <MainHeader>
         <LogoGroup>
           <span className="logo-title">FINBOT AI</span>
-          <span className="logo-tag">QUANT DESK v2.4</span>
+          <span className="logo-tag">QUANT DESK v2.5</span>
         </LogoGroup>
 
         <NavTabs>
@@ -157,8 +158,11 @@ function App() {
           <TabButton active={activeTab === 'simulator'} onClick={() => setActiveTab('simulator')}>
             [3] MONTE CARLO ENGINE
           </TabButton>
+          <TabButton active={activeTab === 'mpt'} onClick={() => setActiveTab('mpt')}>
+            [4] FRONTIER &amp; STRESS TEST
+          </TabButton>
           <TabButton active={activeTab === 'quiz'} onClick={() => setActiveTab('quiz')}>
-            [4] RISK EVALUATOR
+            [5] RISK EVALUATOR
           </TabButton>
         </NavTabs>
       </MainHeader>
@@ -170,6 +174,7 @@ function App() {
           <PortfolioDisplay text="PORTFOLIO COMMAND CENTER & RISK ANALYTICS" data={activePortfolio} />
         )}
         {activeTab === 'simulator' && <WealthSimulator />}
+        {activeTab === 'mpt' && <EfficientFrontierStressTest portfolioData={activePortfolio} />}
         {activeTab === 'quiz' && <RiskQuizModal onComplete={handleQuizComplete} />}
       </ContentArea>
     </AppWrapper>

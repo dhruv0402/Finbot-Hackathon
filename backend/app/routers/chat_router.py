@@ -9,6 +9,10 @@ from app.services.portfolio_service import generate_portfolio, run_monte_carlo_s
 from app.models.portfolio_models import PortfolioRequest, MonteCarloRequest, MonteCarloResponse
 from app.services.market_data_service import get_live_tickers
 
+from app.services.mpt_service import compute_efficient_frontier
+from app.services.stress_test_service import run_portfolio_stress_test
+from app.services.pdf_report_service import generate_institutional_report_html
+
 router = APIRouter()
 
 REQUIRED_KEYS = ["capital", "monthly_investment", "risk_appetite", "preferred_tools"]
@@ -22,24 +26,40 @@ FOLLOW_UP_QUESTIONS = {
 
 @router.get("/api/market/tickers")
 async def market_tickers_endpoint():
-    """
-    Returns streaming-style live ticker data and intraday sparklines.
-    """
     return {"status": "success", "tickers": get_live_tickers()}
 
 @router.post("/api/portfolio/simulate", response_model=MonteCarloResponse)
 async def simulate_endpoint(req: MonteCarloRequest):
-    """
-    Executes stochastic Monte Carlo growth projection.
-    """
     return run_monte_carlo_simulation(req)
 
 @router.post("/api/portfolio/analytics")
 async def direct_analytics_endpoint(req: PortfolioRequest):
-    """
-    Directly builds portfolio allocation and quantitative metrics without conversational session logic.
-    """
     return generate_portfolio(req)
+
+@router.get("/api/portfolio/mpt-efficient-frontier")
+async def mpt_efficient_frontier_endpoint():
+    """
+    Returns Markowitz Efficient Frontier optimization curve & tangency portfolio weights.
+    """
+    return compute_efficient_frontier()
+
+@router.post("/api/portfolio/stress-test")
+async def stress_test_endpoint(payload: Dict[str, Any]):
+    """
+    Evaluates portfolio performance under 2008, 2020, and 2022 historical crises.
+    """
+    capital = float(payload.get("capital", 500000))
+    allocations = payload.get("allocation", [])
+    return run_portfolio_stress_test(capital, allocations)
+
+@router.post("/api/portfolio/export-report")
+async def export_report_endpoint(payload: Dict[str, Any]):
+    """
+    Generates downloadable institutional HTML/PDF wealth plan document.
+    """
+    html_content = generate_institutional_report_html(payload)
+    return {"status": "success", "html": html_content}
+
 
 @router.post("/api/risk-quiz")
 async def risk_quiz_endpoint(answers: Dict[str, int]):
