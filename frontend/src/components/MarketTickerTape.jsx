@@ -1,3 +1,7 @@
+import React, { useEffect, useState } from 'react';
+import styled from '@emotion/styled';
+import axios from 'axios';
+import { theme } from '../theme';
 import { getApiBase } from '../services/apiConfig';
 
 const TickerBar = styled.div`
@@ -58,15 +62,14 @@ const TickerItem = styled.div`
 `;
 
 const FALLBACK_TICKERS = [
-  { symbol: 'NIFTY 50', price: 24850.40, change: 142.10, change_pct: 0.58 },
-  { symbol: 'SENSEX', price: 81320.15, change: 340.50, change_pct: 0.42 },
-  { symbol: 'BANK NIFTY', price: 52410.80, change: 338.20, change_pct: 0.65 },
-  { symbol: 'RELIANCE', price: 2980.50, change: 38.20, change_pct: 1.30 },
-  { symbol: 'TCS', price: 4215.00, change: 35.50, change_pct: 0.85 },
-  { symbol: 'HDFCBANK', price: 1642.30, change: -7.40, change_pct: -0.45 },
-  { symbol: 'INFY', price: 1860.20, change: 20.20, change_pct: 1.10 },
-  { symbol: 'TATAMOTORS', price: 1085.40, change: 22.80, change_pct: 2.15 },
-  { symbol: 'GOLD 10g', price: 72450.00, change: 360.00, change_pct: 0.50 }
+  { symbol: 'NIFTY 50', price: 24206.35, change: 7.28, change_pct: 0.72 },
+  { symbol: 'SENSEX', price: 77367.01, change: 9.19, change_pct: 0.22 },
+  { symbol: 'RELIANCE', price: 1323.42, change: 10.68, change_pct: 0.61 },
+  { symbol: 'TCS', price: 2287.83, change: 14.31, change_pct: 0.31 },
+  { symbol: 'HDFCBANK', price: 723.95, change: 6.71, change_pct: 0.42 },
+  { symbol: 'INFY', price: 1115.57, change: 8.99, change_pct: 0.25 },
+  { symbol: 'ICICIBANK', price: 1240.21, change: 13.21, change_pct: 0.22 },
+  { symbol: 'GOLD (10g)', price: 126.49, change: 11.62, change_pct: 0.63 }
 ];
 
 export const MarketTickerTape = () => {

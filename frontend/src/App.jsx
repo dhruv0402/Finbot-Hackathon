@@ -8,6 +8,7 @@ import { WealthSimulator } from './components/WealthSimulator';
 import { RiskQuizModal } from './components/RiskQuizModal';
 import { EfficientFrontierStressTest } from './components/EfficientFrontierStressTest';
 import { TaxHarvestingWidget } from './components/TaxHarvestingWidget';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 const AppWrapper = styled.div`
   display: flex;
