@@ -145,7 +145,7 @@ function App() {
       <MainHeader>
         <LogoGroup>
           <span className="logo-title">FINBOT AI</span>
-          <span className="logo-tag">QUANT DESK v2.5</span>
+          <span className="logo-tag">QUANT DESK v3.0</span>
         </LogoGroup>
 
         <NavTabs>
@@ -156,13 +156,16 @@ function App() {
             [2] PORTFOLIO COMMAND
           </TabButton>
           <TabButton active={activeTab === 'simulator'} onClick={() => setActiveTab('simulator')}>
-            [3] MONTE CARLO ENGINE
+            [3] MONTE CARLO
           </TabButton>
           <TabButton active={activeTab === 'mpt'} onClick={() => setActiveTab('mpt')}>
-            [4] FRONTIER &amp; STRESS TEST
+            [4] FRONTIER &amp; STRESS
+          </TabButton>
+          <TabButton active={activeTab === 'tax'} onClick={() => setActiveTab('tax')}>
+            [5] TAX HARVESTER
           </TabButton>
           <TabButton active={activeTab === 'quiz'} onClick={() => setActiveTab('quiz')}>
-            [5] RISK EVALUATOR
+            [6] RISK EVALUATOR
           </TabButton>
         </NavTabs>
       </MainHeader>
@@ -175,6 +178,7 @@ function App() {
         )}
         {activeTab === 'simulator' && <WealthSimulator />}
         {activeTab === 'mpt' && <EfficientFrontierStressTest portfolioData={activePortfolio} />}
+        {activeTab === 'tax' && <TaxHarvestingWidget />}
         {activeTab === 'quiz' && <RiskQuizModal onComplete={handleQuizComplete} />}
       </ContentArea>
     </AppWrapper>

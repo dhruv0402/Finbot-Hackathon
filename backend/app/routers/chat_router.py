@@ -52,13 +52,17 @@ async def stress_test_endpoint(payload: Dict[str, Any]):
     allocations = payload.get("allocation", [])
     return run_portfolio_stress_test(capital, allocations)
 
-@router.post("/api/portfolio/export-report")
-async def export_report_endpoint(payload: Dict[str, Any]):
+from app.services.tax_service import calculate_tax_loss_harvesting
+
+@router.post("/api/portfolio/tax-harvesting")
+async def tax_harvesting_endpoint(payload: Dict[str, Any]):
     """
-    Generates downloadable institutional HTML/PDF wealth plan document.
+    Computes tax savings achieved by offset harvesting unrealized losses.
     """
-    html_content = generate_institutional_report_html(payload)
-    return {"status": "success", "html": html_content}
+    gains = float(payload.get("realized_gains", 100000))
+    losses = float(payload.get("unrealized_losses", 40000))
+    days = int(payload.get("holding_period_days", 180))
+    return calculate_tax_loss_harvesting(gains, losses, days)
 
 
 @router.post("/api/risk-quiz")
