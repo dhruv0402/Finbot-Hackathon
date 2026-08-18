@@ -10,7 +10,7 @@ const TickerBar = styled.div`
   align-items: center;
   overflow-x: auto;
   white-space: nowrap;
-  padding: 0.4rem 1rem;
+  padding: 0.45rem 1rem;
   font-family: ${theme.fonts.mono};
   font-size: 0.75rem;
   user-select: none;
@@ -23,7 +23,7 @@ const StationBadge = styled.div`
   padding-right: 1rem;
   margin-right: 1rem;
   border-right: 1px solid ${theme.colors.border};
-  font-weight: 600;
+  font-weight: 700;
   color: ${theme.colors.primary};
   letter-spacing: 0.05em;
 
@@ -50,7 +50,7 @@ const TickerItem = styled.div`
   }
 
   .change {
-    font-weight: 500;
+    font-weight: 600;
     &.positive {
       color: ${theme.colors.accent};
     }
@@ -61,13 +61,15 @@ const TickerItem = styled.div`
 `;
 
 const FALLBACK_TICKERS = [
-  { symbol: 'NIFTY50', price: 24850.40, change: 142.10, change_pct: 0.58 },
-  { symbol: 'SPX', price: 5648.20, change: 24.80, change_pct: 0.44 },
-  { symbol: 'NDX', price: 19780.15, change: 185.30, change_pct: 0.95 },
-  { symbol: 'NVDA', price: 128.45, change: 3.25, change_pct: 2.60 },
-  { symbol: 'AAPL', price: 224.10, change: -0.85, change_pct: -0.38 },
-  { symbol: 'BTCUSD', price: 64250.00, change: 1240.00, change_pct: 1.97 },
-  { symbol: 'GOLD', price: 2504.80, change: 12.30, change_pct: 0.49 }
+  { symbol: 'NIFTY 50', price: 24850.40, change: 142.10, change_pct: 0.58 },
+  { symbol: 'SENSEX', price: 81320.15, change: 340.50, change_pct: 0.42 },
+  { symbol: 'BANK NIFTY', price: 52410.80, change: 338.20, change_pct: 0.65 },
+  { symbol: 'RELIANCE', price: 2980.50, change: 38.20, change_pct: 1.30 },
+  { symbol: 'TCS', price: 4215.00, change: 35.50, change_pct: 0.85 },
+  { symbol: 'HDFCBANK', price: 1642.30, change: -7.40, change_pct: -0.45 },
+  { symbol: 'INFY', price: 1860.20, change: 20.20, change_pct: 1.10 },
+  { symbol: 'TATAMOTORS', price: 1085.40, change: 22.80, change_pct: 2.15 },
+  { symbol: 'GOLD 10g', price: 72450.00, change: 360.00, change_pct: 0.50 }
 ];
 
 export const MarketTickerTape = () => {
@@ -81,7 +83,7 @@ export const MarketTickerTape = () => {
           setTickers(res.data.tickers);
         }
       } catch (err) {
-        // use fallback if backend is starting up
+        // Fallback initialized
       }
     };
     fetchTickers();
@@ -93,14 +95,14 @@ export const MarketTickerTape = () => {
     <TickerBar>
       <StationBadge>
         <div className="dot" />
-        LIVE MARKETS
+        INDIAN MARKETS (NSE/BSE)
       </StationBadge>
       {tickers.map((t) => {
         const isPos = t.change_pct >= 0;
         return (
           <TickerItem key={t.symbol}>
             <span className="symbol">{t.symbol}</span>
-            <span className="price">${typeof t.price === 'number' ? t.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : t.price}</span>
+            <span className="price">₹{typeof t.price === 'number' ? t.price.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : t.price}</span>
             <span className={`change ${isPos ? 'positive' : 'negative'}`}>
               {isPos ? '+' : ''}{t.change_pct}%
             </span>

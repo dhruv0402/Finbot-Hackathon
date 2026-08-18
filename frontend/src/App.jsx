@@ -150,22 +150,22 @@ function App() {
 
         <NavTabs>
           <TabButton active={activeTab === 'chat'} onClick={() => setActiveTab('chat')}>
-            [1] ADVISORY CHAT
+            [1] ASK FINBOT (AI)
           </TabButton>
           <TabButton active={activeTab === 'portfolio'} onClick={() => setActiveTab('portfolio')}>
-            [2] PORTFOLIO COMMAND
+            [2] PORTFOLIO PLAN
           </TabButton>
           <TabButton active={activeTab === 'simulator'} onClick={() => setActiveTab('simulator')}>
-            [3] MONTE CARLO
+            [3] SIP WEALTH ENGINE
           </TabButton>
           <TabButton active={activeTab === 'mpt'} onClick={() => setActiveTab('mpt')}>
-            [4] FRONTIER &amp; STRESS
+            [4] RISK &amp; FRONTIER
           </TabButton>
           <TabButton active={activeTab === 'tax'} onClick={() => setActiveTab('tax')}>
-            [5] TAX HARVESTER
+            [5] TAX &amp; SAVINGS GUIDE
           </TabButton>
           <TabButton active={activeTab === 'quiz'} onClick={() => setActiveTab('quiz')}>
-            [6] RISK EVALUATOR
+            [6] RISK QUIZ
           </TabButton>
         </NavTabs>
       </MainHeader>

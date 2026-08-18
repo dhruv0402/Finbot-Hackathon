@@ -63,9 +63,9 @@ const PresetPill = styled.button`
   background-color: #111827;
   color: ${theme.colors.textMuted};
   border: 1px solid ${theme.colors.border};
-  padding: 0.3rem 0.6rem;
+  padding: 0.35rem 0.7rem;
   font-family: ${theme.fonts.mono};
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   cursor: pointer;
   white-space: nowrap;
 
@@ -86,10 +86,11 @@ export const ChatInterface = () => {
   }, [messages, isLoading]);
 
   const presets = [
-    "Allocate 500,000 INR medium risk",
-    "Build aggressive portfolio 1,000,000 INR",
-    "What is the Sharpe ratio of low risk strategy?",
-    "Explain Value at Risk (VaR 95%)"
+    "Start ₹5,000 monthly SIP",
+    "Build ₹1 Lakh medium risk portfolio",
+    "Nifty 50 vs Bank FD comparison",
+    "Explain ELSS Tax Savings (Sec 80C)",
+    "What is Sharpe Ratio?"
   ];
 
   return (
@@ -97,7 +98,7 @@ export const ChatInterface = () => {
       <MessagesBox ref={scrollRef}>
         {messages.map((msg, idx) => {
           if (msg.type === 'portfolio' && msg.data) {
-            return <PortfolioDisplay key={idx} text="QUANTITATIVE PORTFOLIO GENERATED" data={msg.data} />;
+            return <PortfolioDisplay key={idx} text="RECOMMENDED ASSET ALLOCATION PLAN" data={msg.data} />;
           }
           if (msg.from === 'user') {
             return <UserBubble key={idx}>PROMPT &gt; {msg.text}</UserBubble>;

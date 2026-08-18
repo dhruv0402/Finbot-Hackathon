@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from '@emotion/styled';
-import axios from 'axios';
 import { theme } from '../theme';
 
 const Container = styled.div`
   background-color: ${theme.colors.surface};
   border: 1px solid ${theme.colors.border};
-  padding: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.5rem;
 `;
 
-const Title = styled.h2`
-  font-size: 1rem;
+const SectionTitle = styled.h2`
+  font-size: 1.1rem;
   font-weight: 700;
   color: ${theme.colors.textHeadline};
   font-family: ${theme.fonts.mono};
@@ -21,175 +20,205 @@ const Title = styled.h2`
   padding-bottom: 0.5rem;
 `;
 
-const FormGrid = styled.div`
+const CardsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 1.25rem;
 
-  @media (max-width: 768px) {
+  @media (max-width: 850px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const FormGroup = styled.div`
+const RuleCard = styled.div`
+  background-color: #0f172a;
+  border: 1px solid ${theme.colors.border};
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.75rem;
+
+  .tag {
+    font-size: 0.7rem;
+    font-family: ${theme.fonts.mono};
+    color: ${theme.colors.primary};
+    background-color: #1e293b;
+    padding: 0.2rem 0.5rem;
+    align-self: flex-start;
+  }
+
+  .title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: ${theme.colors.textHeadline};
+  }
+
+  .desc {
+    font-size: 0.85rem;
+    color: ${theme.colors.textMuted};
+    line-height: 1.5;
+  }
+
+  .stat {
+    font-family: ${theme.fonts.mono};
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: ${theme.colors.accent};
+    margin-top: 0.2rem;
+  }
+`;
+
+const CalculatorBox = styled.div`
+  background-color: #0f172a;
+  border: 1px solid ${theme.colors.border};
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const FormRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
 
   label {
     font-size: 0.75rem;
     color: ${theme.colors.textMuted};
     font-family: ${theme.fonts.mono};
-    text-transform: uppercase;
-  }
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 
-  input, select {
-    background-color: #0b0f17;
-    color: ${theme.colors.text};
-    border: 1px solid ${theme.colors.border};
-    padding: 0.6rem;
-    font-family: ${theme.fonts.mono};
-    font-size: 0.85rem;
-    outline: none;
-
-    &:focus {
-      border-color: ${theme.colors.primary};
+    input, select {
+      background-color: #0b0f17;
+      color: ${theme.colors.text};
+      border: 1px solid ${theme.colors.border};
+      padding: 0.6rem;
+      font-family: ${theme.fonts.mono};
+      font-size: 0.85rem;
+      outline: none;
     }
   }
 `;
 
-const ResultsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-
-  @media (max-width: 700px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`;
-
-const StatCard = styled.div`
-  background-color: #0f172a;
-  border: 1px solid ${theme.colors.border};
-  padding: 0.75rem;
-
-  .s-label {
-    font-size: 0.65rem;
-    color: ${theme.colors.textMuted};
-    font-family: ${theme.fonts.mono};
-    text-transform: uppercase;
-  }
-
-  .s-val {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: ${props => props.color || theme.colors.textHeadline};
-    font-family: ${theme.fonts.mono};
-    margin-top: 0.2rem;
-  }
-`;
-
-const Banner = styled.div`
-  background-color: #0f172a;
+const ResultBanner = styled.div`
+  background-color: #0b0f17;
   border: 1px solid ${theme.colors.accent};
-  padding: 0.8rem 1rem;
-  font-family: ${theme.fonts.mono};
-  font-size: 0.8rem;
-  color: ${theme.colors.accent};
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .r-label {
+    font-size: 0.85rem;
+    color: ${theme.colors.textMuted};
+  }
+
+  .r-val {
+    font-family: ${theme.fonts.mono};
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: ${theme.colors.accent};
+  }
 `;
 
 export const TaxHarvestingWidget = () => {
-  const [realizedGains, setRealizedGains] = useState(150000);
-  const [unrealizedLosses, setUnrealizedLosses] = useState(60000);
-  const [holdingDays, setHoldingDays] = useState(180);
-  const [result, setResult] = useState(null);
+  const [profit, setProfit] = useState(150000);
+  const [loss, setLoss] = useState(40000);
+  const [term, setTerm] = useState('stcg');
 
-  useEffect(() => {
-    const computeTax = async () => {
-      try {
-        const res = await axios.post('http://localhost:8000/api/portfolio/tax-harvesting', {
-          realized_gains: realizedGains,
-          unrealized_losses: unrealizedLosses,
-          holding_period_days: holdingDays
-        });
-        setResult(res.data);
-      } catch (e) {
-        // Fallback calculations
-        const rate = holdingDays > 365 ? 0.125 : 0.20;
-        const loss = Math.min(realizedGains, unrealizedLosses);
-        const saved = loss * rate;
-        setResult({
-          gain_type: holdingDays > 365 ? "LTCG (12.5%)" : "STCG (20%)",
-          tax_rate_pct: rate * 100,
-          harvestable_loss_applied: loss,
-          tax_before_harvest: realizedGains * rate,
-          tax_after_harvest: (realizedGains - loss) * rate,
-          tax_saved: saved,
-          recommendation: `Harvest ₹${loss.toLocaleString()} of unrealized losses to save ₹${saved.toLocaleString()} in taxes.`
-        });
-      }
-    };
-    computeTax();
-  }, [realizedGains, unrealizedLosses, holdingDays]);
+  const taxRate = term === 'stcg' ? 0.20 : 0.125;
+  const exemption = term === 'ltcg' ? 125000 : 0;
+  
+  const taxableProfitWithoutHarvest = Math.max(0, profit - exemption);
+  const taxWithoutHarvest = taxableProfitWithoutHarvest * taxRate;
+
+  const harvestableLoss = Math.min(profit, loss);
+  const taxableProfitWithHarvest = Math.max(0, profit - harvestableLoss - exemption);
+  const taxWithHarvest = taxableProfitWithHarvest * taxRate;
+
+  const taxSaved = Math.max(0, taxWithoutHarvest - taxWithHarvest);
 
   return (
     <Container>
-      <Title>TAX-LOSS HARVESTING OPTIMIZER (SEC 70/71 INCOME TAX ACT)</Title>
+      <SectionTitle>INDIAN TAX &amp; SAVINGS GUIDE (INCOME TAX ACT RULES)</SectionTitle>
 
-      <FormGrid>
-        <FormGroup>
-          <label>Realized Capital Gains (₹)</label>
-          <input
-            type="number"
-            value={realizedGains}
-            onChange={(e) => setRealizedGains(Number(e.target.value))}
-          />
-        </FormGroup>
+      <CardsGrid>
+        <RuleCard>
+          <span className="tag">SECTION 80C</span>
+          <div className="title">ELSS Tax Saving Mutual Funds</div>
+          <div className="desc">Save up to ₹46,800 in tax every year by investing up to ₹1.5 Lakhs in ELSS funds with a 3-year lock-in period.</div>
+          <div className="stat">Max Benefit: ₹46,800/yr</div>
+        </RuleCard>
 
-        <FormGroup>
-          <label>Unrealized Losses Available (₹)</label>
-          <input
-            type="number"
-            value={unrealizedLosses}
-            onChange={(e) => setUnrealizedLosses(Number(e.target.value))}
-          />
-        </FormGroup>
+        <RuleCard>
+          <span className="tag">LTCG (HOLDING &gt; 1 YEAR)</span>
+          <div className="title">₹1.25 Lakh Profit Exemption</div>
+          <div className="desc">Long-term profits on stocks and equity mutual funds are tax-free up to ₹1.25 Lakhs per financial year. Excess is taxed at 12.5%.</div>
+          <div className="stat">100% Tax Free up to ₹1.25L</div>
+        </RuleCard>
 
-        <FormGroup>
-          <label>Holding Period</label>
-          <select value={holdingDays} onChange={(e) => setHoldingDays(Number(e.target.value))}>
-            <option value={180}>Short-Term (&lt; 1 Year / STCG 20%)</option>
-            <option value={400}>Long-Term (&gt; 1 Year / LTCG 12.5%)</option>
-          </select>
-        </FormGroup>
-      </FormGrid>
+        <RuleCard>
+          <span className="tag">TAX-LOSS HARVESTING</span>
+          <div className="title">Offset Losses to Cut Taxes</div>
+          <div className="desc">If you have loss-making stocks, sell them before March 31 to offset your realized profits and legally reduce your income tax bill.</div>
+          <div className="stat">Instant Tax Offset</div>
+        </RuleCard>
+      </CardsGrid>
 
-      {result && (
-        <>
-          <ResultsGrid>
-            <StatCard>
-              <div className="s-label">Classification</div>
-              <div className="s-val">{result.gain_type}</div>
-            </StatCard>
-            <StatCard color={theme.colors.danger}>
-              <div className="s-label">Tax Liability Without Harvest</div>
-              <div className="s-val">₹{result.tax_before_harvest?.toLocaleString()}</div>
-            </StatCard>
-            <StatCard color={theme.colors.warning}>
-              <div className="s-label">Net Tax Liability After Harvest</div>
-              <div className="s-val">₹{result.tax_after_harvest?.toLocaleString()}</div>
-            </StatCard>
-            <StatCard color={theme.colors.accent}>
-              <div className="s-label">Total Tax Saved</div>
-              <div className="s-val">₹{result.tax_saved?.toLocaleString()}</div>
-            </StatCard>
-          </ResultsGrid>
+      <CalculatorBox>
+        <div style={{ fontFamily: theme.fonts.mono, fontSize: '0.9rem', fontWeight: 700, color: theme.colors.textHeadline }}>
+          QUICK TAX SAVINGS CALCULATOR
+        </div>
 
-          <Banner>
-            ACTION DIRECTIVE: {result.recommendation}
-          </Banner>
-        </>
-      )}
+        <FormRow>
+          <label>
+            Realized Capital Profit (₹)
+            <input
+              type="number"
+              value={profit}
+              onChange={(e) => setProfit(Number(e.target.value))}
+            />
+          </label>
+
+          <label>
+            Available Stock Losses (₹)
+            <input
+              type="number"
+              value={loss}
+              onChange={(e) => setLoss(Number(e.target.value))}
+            />
+          </label>
+
+          <label>
+            Holding Horizon
+            <select value={term} onChange={(e) => setTerm(e.target.value)}>
+              <option value="stcg">Short Term (&lt; 1 Year / 20% Tax)</option>
+              <option value="ltcg">Long Term (&gt; 1 Year / 12.5% Tax)</option>
+            </select>
+          </label>
+        </FormRow>
+
+        <ResultBanner>
+          <div className="r-label">
+            By selling ₹{harvestableLoss.toLocaleString('en-IN')} of loss-making holdings before March 31:
+          </div>
+          <div className="r-val">
+            TAX SAVED: ₹{taxSaved.toLocaleString('en-IN')}
+          </div>
+        </ResultBanner>
+      </CalculatorBox>
     </Container>
   );
 };
