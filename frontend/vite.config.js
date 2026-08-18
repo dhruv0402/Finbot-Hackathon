@@ -5,9 +5,14 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    cors: true
+  },
   resolve: {
     alias: {
-      // This sets up an alias. '@' will now point to your 'src' folder.
       '@': path.resolve(__dirname, './src'),
     },
   },
