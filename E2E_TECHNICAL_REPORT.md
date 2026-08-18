@@ -13,7 +13,7 @@
 - **1,000-Path Stochastic Monte Carlo Simulations** utilizing Geometric Brownian Motion with Box-Muller random shocks.
 - **Historical Crisis Stress-Testing** evaluating drawdowns under the 2008 GFC, 2020 COVID shock, and 2022 Inflation rate crisis.
 - **Indian Tax-Loss Harvesting Engine** (Section 80C ELSS tax deduction & LTCG ₹1.25L exemption rules).
-- **Single-Port FastAPI Production Architecture** serving both backend REST APIs and compiled React static assets on port `8000`.
+- **Instant Non-Blocking Live Market Streamer**: Non-blocking ticker feed delivering real-time NSE/BSE stock sparklines.
 
 ---
 

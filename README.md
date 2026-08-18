@@ -6,6 +6,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-brightgreen.svg)](https://www.python.org/)
 [![React 18](https://img.shields.io/badge/react-18.2-61dafb.svg)](https://reactjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg)](https://fastapi.tiangolo.com/)
+[![CI Pipeline](https://github.com/dhruv0402/Finbot-Hackathon/actions/workflows/ci.yml/badge.svg)](https://github.com/dhruv0402/Finbot-Hackathon/actions)
 
 ---
 
