@@ -1,23 +1,22 @@
-# 🏛️ FinBot AI: End-to-End Technical Report & System Architecture Specification
+# FinBot AI: Technical Report & Architecture Specification
 
-> **Architectural Blueprint, Quantitative Mathematical Formulations, Architecture Decision Records (ADRs), Data Provenance, and Known Limitations Audit.**
-> *Refined Specification for Recruiter Audits, Code Reviews, and LLM Context Exchange (Claude / GPT-4 / Gemini).*
+> **Architectural Blueprint, Quantitative Mathematical Formulations, ADRs, Data Provenance, and System Audit.**
 
 ---
 
-## 📋 Executive Overview
+## Executive Overview
 
-**FinBot AI** is an institutional-grade, recruiter-ready **Quantitative Wealth Management & Financial Advisory Platform**. It translates investor financial prompts into statistical asset allocations backed by:
+**FinBot AI** is a quantitative wealth management platform engineered for asset allocation modeling, portfolio risk estimation, and historical scenario evaluation. It translates investor prompts into statistical asset allocations backed by:
 - **Markowitz Modern Portfolio Theory (MPT)** Efficient Frontier optimization (SciPy SLSQP quadratic solver).
-- **10-Year Historical Backtesting Engine (2015-2025)** on NSE/BSE asset allocation weights with 0.1% annual rebalancing fee drag.
+- **10-Year Historical Backtesting Engine (2015–2025)** on NSE/BSE asset allocation weights with 0.1% annual rebalancing fee drag.
 - **1,000-Path Stochastic Monte Carlo Simulations** utilizing Geometric Brownian Motion with Box-Muller random shocks.
 - **Historical Crisis Stress-Testing** evaluating drawdowns under the 2008 GFC, 2020 COVID shock, and 2022 Inflation rate crisis.
-- **Indian Tax-Loss Harvesting Engine** (Section 80C ELSS tax deduction & LTCG ₹1.25L exemption rules).
-- **Instant Non-Blocking Live Market Streamer**: Non-blocking ticker feed delivering real-time NSE/BSE stock sparklines.
+- **Indian Tax-Loss Harvesting Engine** (Section 80C ELSS tax deduction, Section 112A LTCG ₹1.25L exemption, Section 70/71 loss set-off rules).
+- **Single-Port FastAPI Architecture** serving both backend REST APIs and compiled React static assets on port `8000`.
 
 ---
 
-## 🏗️ End-to-End System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -34,7 +33,7 @@ graph TD
         Router --> StressService["Crash Stress Test Engine (backend/app/services/stress_test_service.py)"]
         Router --> TaxService["Section 70/71 Tax Engine (backend/app/services/tax_service.py)"]
         Router --> MarketService["Live Market Streamer (backend/app/services/market_data_service.py)"]
-        Router --> PDFService["Printable Report Exporter (backend/app/services/pdf_report_service.py)"]
+        Router --> PDFService["Report Exporter (backend/app/services/pdf_report_service.py)"]
     end
     
     subgraph Data & Math Models
@@ -46,7 +45,7 @@ graph TD
 
 ---
 
-## 🧮 Quantitative Mathematical Formulations
+## Mathematical Formulations
 
 ### 1. Markowitz Modern Portfolio Theory (MPT) Efficient Frontier
 The portfolio expected return $E(R_p)$ and portfolio variance $\sigma_p^2$ for $n$ assets with weights $w = [w_1, w_2, \dots, w_n]^T$ are given by:
@@ -65,7 +64,7 @@ Solved using `scipy.optimize.minimize` with method `'SLSQP'`.
 ---
 
 ### 2. Historical Backtesting Engine (2015–2025) & Data Provenance
-- **Data Provenance**: Historical annual return series for asset classes in `backtest_service.py` are sourced from historical performance benchmarks (NSE Nifty 50 Index, CRISIL Composite Bond Index, and MCX Spot Gold price series) over the 2015–2025 period.
+- **Data Provenance**: Historical annual return series for asset classes in `backtest_service.py` are sourced from performance benchmarks (NSE Nifty 50 Index, CRISIL Composite Bond Index, and MCX Spot Gold price series) over the 2015–2025 period.
 - **Rebalancing Drag**: The portfolio return in year $t$ with annual rebalancing back to target weights $w_i$ and transaction fee drag $c = 0.001$ (0.1% per trade):
 
 $$R_{p, t} = \left( \sum_{i=1}^n w_i \cdot R_{i, t} \right) - c$$
@@ -100,7 +99,7 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 
 ---
 
-## 🏛 Architecture Decision Records (ADRs)
+## Architecture Decision Records (ADRs)
 
 ### ADR 001: SciPy SLSQP vs. CVXPY Solver
 - **Status**: Accepted
@@ -122,34 +121,34 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 
 ---
 
-## ⚠️ Known Limitations & Proactive Engineering Audit
+## Known Limitations & System Audit
 
 1. **Covariance Input Assumptions**: Pure Markowitz MPT relies on historical mean-variance inputs which can exhibit sensitivity to extreme market shocks. *Future Work*: Implementation of Black-Litterman asset allocation combining market equilibrium with investor views.
-2. **Tax Legislation Currency**: Tax parameters (Section 80C ELSS ₹1.5L cap and Section 112A LTCG ₹1.25L exemption) reflect the Indian **Finance Act 2024**. Annual Union Budget amendments require parameter revalidation.
+2. **Tax Legislation Currency**: Tax parameters (Section 80C ELSS ₹1.5L cap, Section 112A LTCG ₹1.25L exemption, and Section 70/71 loss set-off rules) reflect the Indian **Finance Act 2024**. Annual Union Budget amendments require parameter revalidation.
 3. **Session Persistence Scope**: Current sessions utilize in-memory storage suitable for single-node evaluation. Production deployment requires Redis / PostgreSQL persistence.
 4. **LLM API Provider Requirement**: `llm_service.py` defaults to deterministic NLP parsing when unauthenticated. Active LLM call dispatch requires supplying an API key (`OPENAI_API_KEY` or `GEMINI_API_KEY`) in the server environment.
 
 ---
 
-## 🌐 Complete REST API Endpoint Specification
+## REST API Endpoint Specification
 
 All endpoints are hosted on `http://localhost:8000`:
 
 | Method | Endpoint Path | Request Body Schema | Response Output Schema | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/chat` | `{"message": str, "session_id": str}` | `{"response_type": str, "content": str, "portfolio_data": dict}` | Conversational advisory & portfolio builder |
+| `POST` | `/api/chat` | `{"message": str, "session_id": str}` | `{"response_type": str, "content": str, "portfolio_data": dict}` | Parses natural-language investment queries into structured portfolio allocations |
 | `GET` | `/api/market/tickers` | None | `{"status": "success", "tickers": List[dict]}` | Streams live Indian stock sparklines (NIFTY 50, SENSEX, RELIANCE, TCS) |
 | `POST` | `/api/portfolio/simulate` | `{"initial_capital": float, "monthly_contribution": float, "time_horizon_years": int, "risk_level": str}` | `{"years": List[int], "principal": List[float], "median_path": List[float], "bull_path": List[float], "bear_path": List[float]}` | 1,000-path stochastic Monte Carlo simulation |
 | `GET` | `/api/portfolio/mpt-efficient-frontier` | None | `{"frontier": List[dict], "tangency_portfolio": dict, "min_volatility_portfolio": dict}` | Calculates Markowitz Efficient Frontier curve points via SLSQP |
 | `POST` | `/api/portfolio/backtest` | `{"capital": float, "allocation": List[dict]}` | `{"years": List[int], "portfolio_curve": List[float], "cagr_portfolio_pct": float, "cagr_benchmark_pct": float}` | 10-year historical backtesting (2015-2025) with rebalance fee drag |
 | `POST` | `/api/portfolio/stress-test` | `{"capital": float, "allocation": List[dict]}` | `{"scenarios": List[dict]}` | Simulates portfolio drawdown under 2008 GFC, 2020 COVID, and 2022 Inflation shocks |
-| `POST` | `/api/portfolio/tax-harvesting` | `{"realized_gains": float, "unrealized_losses": float, "holding_period_days": int}` | `{"gain_type": str, "tax_before_harvest": float, "tax_after_harvest": float, "tax_saved": float, "recommendation": str}` | Computes Section 70/71 Income Tax Act loss offset savings |
-| `POST` | `/api/portfolio/export-report` | `PortfolioData` | `{"status": "success", "html": str}` | Generates printable institutional PDF wealth report HTML |
+| `POST` | `/api/portfolio/tax-harvesting` | `{"realized_gains": float, "unrealized_losses": float, "holding_period_days": int}` | `{"gain_type": str, "tax_before_harvest": float, "tax_after_harvest": float, "tax_saved": float, "recommendation": str}` | Computes Section 70/71 Income Tax Act loss set-off savings |
+| `POST` | `/api/portfolio/export-report` | `PortfolioData` | `{"status": "success", "html": str}` | Generates printable PDF wealth report HTML |
 | `POST` | `/api/risk-quiz` | `{"q1": int, "q2": int, ...}` | `{"score": int, "risk_appetite": str, "description": str}` | Evaluates investor risk profiling score |
 
 ---
 
-## 🧪 Automated Test Verification (`unittest`)
+## Automated Test Verification (`unittest`)
 
 Executed via `python3 test_backend.py` (Reproducible via `python3 test_backend.py` or GitHub Actions CI):
 
@@ -174,7 +173,7 @@ Test suite coverage (`TestFinBotQuantSuite` in `backend/test_backend.py`):
 
 ---
 
-## 💻 Developer Setup Commands
+## Developer Setup Commands
 
 To launch FinBot AI on any machine with 1 command:
 
