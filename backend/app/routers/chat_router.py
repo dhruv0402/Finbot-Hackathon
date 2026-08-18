@@ -100,34 +100,40 @@ async def chat_endpoint(req: ChatRequest):
     session = await get_session_data(session_id)
 
     if intent in ("portfolio_request", "providing_info"):
-        missing = [
-            k
-            for k in REQUIRED_KEYS
-            if k not in session or session.get(k) in (None, "")
-        ]
-        if missing:
-            question = FOLLOW_UP_QUESTIONS.get(missing[0], "Can you provide more investment details?")
-            return ChatResponse(response_type="text", content=question)
+        has_any_data = any(session.get(k) for k in ["capital", "monthly_investment", "risk_appetite", "preferred_tools"])
+        if not has_any_data and not entities:
+            return ChatResponse(response_type="text", content="What is the total capital (or monthly SIP) you would like to allocate?")
 
         try:
-            preferred_tools = session.get("preferred_tools", [])
+            raw_cap = session.get("capital")
+            raw_monthly = session.get("monthly_investment")
+            
+            if not raw_cap and raw_monthly:
+                capital_val = int(raw_monthly) * 12
+                monthly_val = int(raw_monthly)
+            elif raw_cap:
+                capital_val = int(raw_cap)
+                monthly_val = int(raw_monthly) if raw_monthly else int(capital_val * 0.05)
+            else:
+                capital_val = 100000
+                monthly_val = 5000
+
+            risk_val = str(session.get("risk_appetite", "medium"))
+            preferred_tools = session.get("preferred_tools", ["Equity Funds", "Debt"])
             if isinstance(preferred_tools, str):
-                preferred_tools_list = [
-                    t.strip() for t in preferred_tools.split(",") if t.strip()
-                ]
+                preferred_tools_list = [t.strip() for t in preferred_tools.split(",") if t.strip()]
             elif isinstance(preferred_tools, list):
                 preferred_tools_list = preferred_tools
             else:
-                preferred_tools_list = []
+                preferred_tools_list = ["Equity Funds", "Debt"]
 
             portfolio_req = PortfolioRequest(
-                capital=int(session.get("capital", 100000)),
-                monthly_investment=int(session.get("monthly_investment", 5000)),
-                risk_appetite=str(session.get("risk_appetite", "medium")),
+                capital=capital_val,
+                monthly_investment=monthly_val,
+                risk_appetite=risk_val,
                 preferred_tools=preferred_tools_list,
             )
-        except Exception as e:
-            # Fallback request if parsing fails
+        except Exception:
             portfolio_req = PortfolioRequest(
                 capital=100000,
                 monthly_investment=5000,

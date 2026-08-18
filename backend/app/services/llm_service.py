@@ -252,11 +252,21 @@ async def classify_intent_and_extract(message: str) -> Dict[str, Any]:
     if tools:
         entities["preferred_tools"] = tools
 
-    is_portfolio_related = any(w in msg_lower for w in [
-        "portfolio", "invest", "allocation", "capital", "sip", "stocks", "funds", "risk", "returns", "build", "create", "my money"
+    is_question = any(q in msg_lower for q in [
+        "explain", "what is", "what does", "how does", "tell me", "why", "meaning", "definition", "what are", "difference"
     ])
 
-    intent = "portfolio_request" if (is_portfolio_related or entities) else "general_question"
+    is_portfolio_related = any(w in msg_lower for w in [
+        "build", "create", "allocate", "my portfolio", "invest", "my money"
+    ])
+
+    if is_question and not is_portfolio_related:
+        intent = "general_question"
+    elif is_portfolio_related or (entities and "capital" in entities):
+        intent = "portfolio_request"
+    else:
+        intent = "providing_info" if entities else "general_question"
+
     return {"intent": intent, "entities": entities}
 
 
