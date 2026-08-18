@@ -1,7 +1,7 @@
 # 🏛️ FinBot AI: End-to-End Technical Report & System Architecture Specification
 
-> **Architectural Blueprint, Quantitative Mathematical Formulations, API Specifications, and Codebase Reference.**
-> *Designed for LLM Context Exchange (Claude / GPT-4 / Gemini) and Recruiter Technical Audits.*
+> **Architectural Blueprint, Quantitative Mathematical Formulations, API Specifications, and Production Readiness Audit.**
+> *Refined Specification for Recruiter Audits, Code Reviews, and LLM Context Exchange (Claude / GPT-4 / Gemini).*
 
 ---
 
@@ -23,16 +23,16 @@ graph TD
     Client["Browser / Client (React 18 Desk)"] -->|HTTP / REST| SinglePortServer["FastAPI Single-Port Server (Port 8000)"]
     
     subgraph FastAPI Backend App
-        SinglePortServer --> Router["Chat & Portfolio Router (chat_router.py)"]
+        SinglePortServer --> Router["Chat & Portfolio Router (backend/app/routers/chat_router.py)"]
         SinglePortServer --> StaticMount["StaticFiles Mount (frontend/dist)"]
         
-        Router --> LLMService["Intent & Entity Parser (llm_service.py)"]
-        Router --> PortfolioService["Quantitative Engine (portfolio_service.py)"]
-        Router --> MPTService["SciPy MPT Optimizer (mpt_service.py)"]
-        Router --> StressService["Crash Stress Test Engine (stress_test_service.py)"]
-        Router --> TaxService["Section 70/71 Tax Engine (tax_service.py)"]
-        Router --> MarketService["Live Market Streamer (market_data_service.py)"]
-        Router --> PDFService["Printable Report Exporter (pdf_report_service.py)"]
+        Router --> LLMService["Intent Classifier & Entity Parser (backend/app/services/llm_service.py)"]
+        Router --> PortfolioService["Quantitative Engine (backend/app/services/portfolio_service.py)"]
+        Router --> MPTService["SciPy MPT Optimizer (backend/app/services/mpt_service.py)"]
+        Router --> StressService["Crash Stress Test Engine (backend/app/services/stress_test_service.py)"]
+        Router --> TaxService["Section 70/71 Tax Engine (backend/app/services/tax_service.py)"]
+        Router --> MarketService["Live Market Streamer (backend/app/services/market_data_service.py)"]
+        Router --> PDFService["Printable Report Exporter (backend/app/services/pdf_report_service.py)"]
     end
     
     subgraph Data & Math Models
@@ -75,21 +75,21 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 
 ---
 
-### 3. Value at Risk (VaR 95%) & Sharpe Ratio
-- **Sharpe Ratio**:
-  $$\text{Sharpe} = \frac{R_p - R_f}{\sigma_p}$$
-- **Parametric Value at Risk (VaR 95%)**:
-  $$\text{VaR}_{95\%} = 1.645 \cdot \sigma_p - \mu_p$$
+### 3. Parametric Value at Risk (VaR 95%) & Horizon Scaling Footnote
+- **Single-Period Parametric VaR (95% Confidence)**:
+  $$\text{VaR}_{95\%, 1\text{yr}} = 1.645 \cdot \sigma_p - \mu_p$$
+- **Multi-Period Horizon Scaling Footnote**:
+  For multi-year horizons $T$, time-scaling is applied via square-root rule:
+  $$\text{VaR}_{95\%, T} = 1.645 \cdot \sigma_p \sqrt{T} - \mu_p T$$
 
 ---
 
 ## 📁 Repository Directory & Module Map
 
-Root Directory: `/Users/dhruvgourisaria/.gemini/antigravity/scratch/finbot-hackathon`
-
 ```
-finbot-hackathon/
+./
 ├── README.md                          # Executive README with quickstart & badges
+├── E2E_TECHNICAL_REPORT.md            # Detailed technical specification (this document)
 ├── start.py                           # 1-Click launcher script (builds frontend & runs Uvicorn)
 ├── start.sh                           # Shell wrapper for start.py
 ├── docker-compose.yml                 # Docker container setup
@@ -106,9 +106,9 @@ finbot-hackathon/
 │   │       ├── stress_test_service.py # 2008, 2020, 2022 historical crisis simulator
 │   │       ├── tax_service.py         # Section 80C ELSS & LTCG exemption calculator
 │   │       ├── market_data_service.py # Non-blocking live Indian ticker feed (NSE/BSE)
-│   │       ├── llm_service.py         # Intent classifier & currency regex normalizer
+│   │       ├── llm_service.py         # Natural Language Intent & Entity Parser
 │   │       └── pdf_report_service.py  # Printable HTML/PDF report template generator
-│   └── test_backend.py                # 7 automated unit test suites
+│   └── test_backend.py                # Python unittest automated test suite
 └── frontend/
     ├── package.json                   # React 18 + Emotion + Chart.js dependencies
     ├── vite.config.js                 # Vite config (host: 0.0.0.0, port: 5173, CORS enabled)
@@ -132,6 +132,29 @@ finbot-hackathon/
 
 ---
 
+## 🔍 Precise Architectural Clarification: Natural Language Intent & Entity Parser (`llm_service.py`)
+
+`llm_service.py` is engineered as a **hybrid Natural Language Processing (NLP) & Rule-Based Fallback Parser**:
+- **Primary Dual Execution**: Supports dynamic LLM API dispatch (OpenAI / Gemini) when API keys are configured in environment variables.
+- **Deterministic Rule Engine**: When unauthenticated, it utilizes regex currency normalizers (`50k` $\rightarrow 50,000$, `5 Lakh` $\rightarrow 500,000$), question keyword priority flags (`explain`, `what is`), and financial term dictionary matching to classify user intent without external latency.
+
+---
+
+## ⚖️ Tax Legislation Disclaimer Footnote
+
+> **Tax Legislation Notice**: Tax rules implemented in `tax_service.py` (Section 80C ELSS ₹1.5 Lakh annual deduction cap and Section 112A LTCG ₹1.25 Lakh tax-exempt profit threshold) reflect the Indian **Finance Act 2024**. Future Union Budget amendments require re-validation of rate parameters in `tax_service.py`.
+
+---
+
+## 🔒 Security Architecture & Production Hardening Roadmap
+
+While designed for self-contained single-port hackathon evaluation, production hardening requires:
+1. **Authentication & Authorization**: Integration of `OAuth2PasswordBearer` with JWT access tokens.
+2. **Rate Limiting**: Redis Token Bucket rate limiting (`100 req/min` per IP) via `slowapi`.
+3. **Session Store**: Session state migration from in-memory dictionary to Redis / PostgreSQL.
+
+---
+
 ## 🌐 Complete REST API Endpoint Specification
 
 All endpoints are hosted on `http://localhost:8000`:
@@ -149,54 +172,27 @@ All endpoints are hosted on `http://localhost:8000`:
 
 ---
 
-## 🎨 UI/UX Design System Specification
-
-In accordance with strict institutional trading desk guidelines:
-- **Color Palette**:
-  - Background: `#0b0f17` (Dark Charcoal Slate)
-  - Surface Panels: `#0f172a` (Slate Surface)
-  - Borders: `#1e293b` (Subtle Slate Border)
-  - Primary Accent: `#0ea5e9` (Cyan Accent)
-  - Positive Yield: `#10b981` (Emerald Accent)
-  - Negative Drawdown: `#ef4444` (Crimson Danger Accent)
-- **Typography**:
-  - Headings & Metrics: `IBM Plex Mono` (Monospaced, tabular numbers)
-  - Body Copy: `IBM Plex Sans`
-- **Component Styling Rules**:
-  - **Sharp 2px border radius** across all panels.
-  - **Zero drop shadows** (flat institutional terminal density).
-  - **Zero cliché emojis, bento grid bloat, or purple/black gradient tropes**.
-
----
-
-## 🧪 Verification & Automated Test Suite Summary
+## 🧪 Automated Test Verification (`unittest`)
 
 Executed via `python3 test_backend.py`:
 
 ```
---- [TEST 1] Portfolio Math & Metrics ---
-✅ High Risk Portfolio generated with Sharpe 1.24 & Return 14.5% p.a.
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.244s
 
---- [TEST 2] Monte Carlo Simulation ---
-✅ Monte Carlo 10-Yr Median Output: INR 2,360,701.65 vs Invested INR 1,300,000.00
-
---- [TEST 3] Market Tickers Feed ---
-✅ Fetched 8 live market tickers with sparklines
-
---- [TEST 4] LLM Intent & Fallback ---
-✅ Extracted entities: {'capital': 200000, 'risk_appetite': 'medium', 'preferred_tools': ['mutual funds']}
-
---- [TEST 5] Markowitz Efficient Frontier ---
-✅ MPT Tangency Portfolio Return 12.47% with Sharpe 0.59
-
---- [TEST 6] Historical Crash Stress Testing ---
-✅ Evaluated 3 historical crash scenarios. 2008 Drawdown: ₹103,000.00
-
---- [TEST 7] PDF Report Generation ---
-✅ HTML/PDF Wealth Planning Report generated successfully
-
-🎉 ALL BACKEND TESTS PASSED SUCCESSFULLY!
+OK
 ```
+
+Test suite coverage (`TestFinBotQuantSuite`):
+1. `test_portfolio_math`: Asserts positive Sharpe ratio and expected returns.
+2. `test_monte_carlo`: Asserts median wealth growth > principal invested over 10-year horizon.
+3. `test_market_tickers`: Asserts minimum 8 tickers returned with valid sparkline arrays.
+4. `test_llm_fallback`: Asserts entity parser correctly extracts numeric capital and risk appetite.
+5. `test_mpt`: Asserts SciPy SLSQP solver yields >5 frontier points and positive Sharpe ratio.
+6. `test_stress_test`: Asserts historical crash drawdown calculations across 3 crisis scenarios.
+7. `test_pdf_report`: Asserts HTML report rendering contains target portfolio values.
+8. `test_edge_cases`: Asserts Pydantic `ValidationError` exception handling on negative inputs (`capital=-50000`) and single-asset degenerate allocations.
 
 ---
 
@@ -205,7 +201,6 @@ Executed via `python3 test_backend.py`:
 To launch FinBot AI on any machine with 1 command:
 
 ```bash
-cd /Users/dhruvgourisaria/.gemini/antigravity/scratch/finbot-hackathon
 python3 start.py
 ```
 
