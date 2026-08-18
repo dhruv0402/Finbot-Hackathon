@@ -1,31 +1,39 @@
 /**
- * Neo-Fintech Dark Mode Theme
- * * This is the central source of truth for all our styling.
- * We'll import this into any component that needs styled.
+ * Institutional Terminal Design System
+ * Strict compliance: Sharp 2px radii, zero drop shadows, crisp dark slate palette.
  */
 export const theme = {
   colors: {
-    background: '#0D1117',  // Deep Space Blue/Charcoal
-    surface: '#161B22',      // Subtly lighter dark blue/gray
-    primary: '#00E676',      // Modern Emerald Green (Accent)
-    // primary: '#00C4FF',   // Alternative: Fintech Blue
+    background: '#0b0f17',
+    surface: '#111827',
+    surfaceHeader: '#1e293b',
+    primary: '#0ea5e9',
+    accent: '#10b981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
     
-    text: '#E6EDF3',          // Light Gray (Body)
-    textHeadline: '#FFFFFF',  // Bright White (Headlines)
-    textSecondary: '#8B949E', // For subtitles, placeholders
+    text: '#f1f5f9',
+    textHeadline: '#ffffff',
+    textMuted: '#94a3b8',
+    textDim: '#64748b',
     
-    border: '#30363D',       // For subtle borders and dividers
+    border: '#1e293b',
+    borderLight: '#334155',
     
-    // Message bubble colors
-    userBubble: '#1A212A',
-    botBubble: '#161B22',
+    userBubble: '#0f172a',
+    botBubble: '#1e293b',
+    activeTab: '#0ea5e9',
   },
   fonts: {
-    primary: "'Poppins', 'Inter', sans-serif",
+    primary: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    mono: "'IBM Plex Mono', 'Courier New', monospace",
+  },
+  radii: {
+    sharp: '0px',
+    subtle: '2px',
+    card: '4px'
   },
   shadows: {
-    // For "lift" effects
-    small: '0 4px 12px rgba(0, 230, 118, 0.1)', 
-    medium: '0 6px 20px rgba(0, 230, 118, 0.15)',
+    none: 'none',
   }
 };

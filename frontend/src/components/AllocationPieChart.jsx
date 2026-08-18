@@ -1,100 +1,102 @@
-    import React from 'react';
-    import styled from '@emotion/styled';
-    import { Doughnut } from 'react-chartjs-2';
-    import {
-    Chart as ChartJS,
-    ArcElement,
-    Tooltip,
-    Legend,
-    } from 'chart.js';
-    import { theme } from '../theme'; // Import our theme
+import React from 'react';
+import styled from '@emotion/styled';
+import { Doughnut } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { theme } from '../theme';
 
-    // --- REQUIRED: Register Chart.js modules ---
-    ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-    // --- Styled Components ---
+const ChartWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  margin: 1rem auto;
+`;
 
-    const ChartContainer = styled.div`
-    position: relative;
-    width: 100%;
-    max-width: 300px;
-    margin: 1.5rem auto;
-    `;
+const CenterStat = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  
+  .label {
+    font-size: 0.75rem;
+    color: ${theme.colors.textMuted};
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: ${theme.fonts.mono};
+  }
+  
+  .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: ${theme.colors.accent};
+    font-family: ${theme.fonts.mono};
+  }
+`;
 
-    // This component uses CSS to overlay text in the center
-    const CenterText = styled.div`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: ${theme.colors.text};
-    
-    span {
-        display: block;
-        font-size: 0.9rem;
-        color: ${theme.colors.textSecondary};
+export const AllocationPieChart = ({ allocationData = [], projectedReturn = "10.8%" }) => {
+  const labels = allocationData.map(item => item.asset_class || item.type || 'Asset');
+  const values = allocationData.map(item => {
+    if (typeof item.percentage === 'number') {
+      return item.percentage > 1 ? item.percentage : item.percentage * 100;
     }
-    
-    h3 {
-        font-size: 2rem;
-        font-weight: 700;
-        color: ${theme.colors.primary};
-        margin: 0;
-    }
-    `;
+    return item.amount || 0;
+  });
 
-    // --- Component ---
-
-    export const AllocationPieChart = ({ allocationData, projectedReturn }) => {
-    // Transform our data prop into the format Chart.js expects
-    const chartData = {
-        labels: allocationData.map(item => item.type),
-        datasets: [
-        {
-            data: allocationData.map(item => item.percentage),
-            // Use our theme colors for the chart!
-            backgroundColor: [
-            theme.colors.primary,
-            '#00E676', // A secondary green
-            '#00C4FF', // A secondary blue
-            '#FFC400', // A yellow
-            ],
-            borderColor: theme.colors.surface,
-            borderWidth: 3,
-            hoverOffset: 8,
-        },
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        data: values,
+        backgroundColor: [
+          '#0ea5e9',
+          '#10b981',
+          '#f59e0b',
+          '#6366f1',
+          '#64748b'
         ],
-    };
+        borderColor: theme.colors.surface,
+        borderWidth: 2,
+        hoverOffset: 4,
+      },
+    ],
+  };
 
-    const chartOptions = {
-        responsive: true,
-        cutout: '70%', // This makes it a "Doughnut"
-        plugins: {
-        legend: {
-            display: false, // We'll show the legend in our accordion
-        },
-        tooltip: {
-            enabled: true,
-        },
-        },
-        // This is the "draw-in" animation from your prompt
-        animation: {
-        animateScale: true,
-        animateRotate: true,
-        duration: 1000,
-        },
-    };
+  const chartOptions = {
+    responsive: true,
+    cutout: '72%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        titleColor: '#ffffff',
+        bodyColor: '#cbd5e1',
+        borderColor: '#334155',
+        borderWidth: 1,
+        padding: 10,
+        displayColors: true,
+        callbacks: {
+          label: (context) => ` ${context.label}: ${context.raw.toFixed(1)}%`
+        }
+      },
+    },
+    animation: { duration: 600 },
+  };
 
-    return (
-        <ChartContainer>
-        <CenterText>
-            <span>Return Est.</span>
-            <h3>{projectedReturn}</h3>
-        </CenterText>
-        <Doughnut data={chartData} options={chartOptions} />
-        </ChartContainer>
-    );
-    };
-
-
+  return (
+    <ChartWrapper>
+      <CenterStat>
+        <div className="label">TARGET RETURN</div>
+        <div className="value">{projectedReturn}</div>
+      </CenterStat>
+      <Doughnut data={chartData} options={chartOptions} />
+    </ChartWrapper>
+  );
+};

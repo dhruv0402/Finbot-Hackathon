@@ -1,153 +1,139 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { motion } from 'framer-motion';
-// --- Senior Dev Note:
-// Fixing the import path. The build tool seems to prefer
-// an absolute path from the project root ('/') instead of
-// a relative path ('../').
-import { theme } from '/src/theme.js';
-// ---
+import { theme } from '../theme';
 
-// --- Styled Components ---
-
-const WelcomeContainer = styled(motion.div)`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   text-align: center;
-  padding: 2rem;
-  background: ${theme.colors.background}; /* Ensure it matches */
+  padding: 2.5rem;
+  background-color: ${theme.colors.background};
 `;
 
-const Logo = styled(motion.h1)`
-  font-size: 3rem;
+const TerminalBox = styled.div`
+  max-width: 680px;
+  width: 100%;
+  background-color: ${theme.colors.surface};
+  border: 1px solid ${theme.colors.border};
+  padding: 2rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+`;
+
+const TopTag = styled.div`
+  font-family: ${theme.fonts.mono};
+  font-size: 0.75rem;
+  color: ${theme.colors.primary};
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid ${theme.colors.border};
+  padding-bottom: 0.6rem;
+`;
+
+const MainHeading = styled.h1`
+  font-size: 1.8rem;
   font-weight: 700;
   color: ${theme.colors.textHeadline};
-  
+  font-family: ${theme.fonts.mono};
+  letter-spacing: -0.02em;
+  margin: 0;
+
   span {
     color: ${theme.colors.primary};
   }
 `;
 
-const Headline = styled(motion.h2)`
-  font-size: 2.75rem;
-  font-weight: 600;
-  color: ${theme.colors.textHeadline};
-  margin-top: 1.5rem;
-  max-width: 600px;
-  line-height: 1.2;
+const Description = styled.p`
+  font-size: 0.9rem;
+  color: ${theme.colors.textMuted};
+  line-height: 1.6;
+  margin: 0;
 `;
 
-const SubHeadline = styled(motion.p)`
-  font-size: 1.25rem;
-  color: ${theme.colors.textSecondary};
-  margin-top: 1rem;
-  max-width: 550px;
+const PresetsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 `;
 
-const StartButton = styled(motion.button)`
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #0D1117; /* Dark background for contrast on button */
-  background: ${theme.colors.primary};
-  border: none;
-  border-radius: 50px; /* Pill shape */
-  margin-top: 3rem;
+const PresetCard = styled.div`
+  background-color: #0b0f17;
+  border: 1px solid ${theme.colors.border};
+  padding: 0.8rem;
+  font-family: ${theme.fonts.mono};
+  font-size: 0.8rem;
   cursor: pointer;
-  letter-spacing: 0.5px;
-  
-  /* Subtle shadow from our theme */
-  box-shadow: ${theme.shadows.small};
-
-  /* We'll use Framer Motion for hover/tap, but good to have a fallback */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: scale(1.03);
-    box-shadow: ${theme.shadows.medium};
+    border-color: ${theme.colors.primary};
+  }
+
+  .title {
+    color: ${theme.colors.textHeadline};
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  .sub {
+    color: ${theme.colors.textDim};
+    font-size: 0.7rem;
   }
 `;
 
-// --- Animation Variants ---
+const LaunchBtn = styled.button`
+  background-color: ${theme.colors.primary};
+  color: #000000;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-family: ${theme.fonts.mono};
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  align-self: flex-start;
 
-// Staggered container for all items
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2, // Each child animates 0.2s after the previous
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: 0.3,
-      ease: 'easeIn',
-    }
+  &:hover {
+    background-color: #38bdf8;
   }
-};
-
-// Fade-in + slide-up variant for each item
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 100,
-      damping: 12,
-    }
-  },
-};
-
-// --- Component ---
+`;
 
 export const WelcomeScreen = ({ onStart }) => {
   return (
-    <WelcomeContainer
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      exit="exit" // This is crucial for AnimatePresence
-    >
-      <Logo variants={itemVariants}>
-        FinBot<span>.</span>
-      </Logo>
-      <Headline variants={itemVariants}>
-        Your Financial Future,
-        Digitally Crafted.
-      </Headline>
-      <SubHeadline variants={itemVariants}>
-        Let our AI analyze your goals and build a personalized
-        investment plan in seconds.
-      </SubHeadline>
-      
-      <StartButton
-        onClick={onStart}
-        variants={itemVariants}
-        // Subtle pulse animation to draw the eye
-        animate={{
-          scale: [1, 1.02, 1],
-          transition: {
-            duration: 2.5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 1.5 // Start after initial animation
-          }
-        }}
-        // Hover/tap animations from Framer Motion
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        Start Your Personalized Plan
-      </StartButton>
-    </WelcomeContainer>
+    <Container>
+      <TerminalBox>
+        <TopTag>
+          <span>FINBOT QUANTITATIVE SUITE v2.4</span>
+          <span>STATUS: ONLINE</span>
+        </TopTag>
+
+        <MainHeading>
+          INSTITUTIONAL WEALTH MANAGEMENT <span>&amp; AI ENGINE</span>
+        </MainHeading>
+
+        <Description>
+          Execute quantitative portfolio asset allocation, 1,000-path stochastic Monte Carlo wealth projections, risk-adjusted Sharpe ratio calculations, and real-time market data analysis.
+        </Description>
+
+        <PresetsGrid>
+          <PresetCard onClick={() => onStart("I want to invest 500000 INR with medium risk in equity and debt funds")}>
+            <div className="title">BALANCED GROWTH PORTFOLIO</div>
+            <div className="sub">₹500,000 Capital • Medium Risk</div>
+          </PresetCard>
+          <PresetCard onClick={() => onStart("Build aggressive growth portfolio for 1000000 INR capital with high risk")}>
+            <div className="title">AGGRESSIVE ALPHA PORTFOLIO</div>
+            <div className="sub">₹1,000,000 Capital • High Risk</div>
+          </PresetCard>
+        </PresetsGrid>
+
+        <LaunchBtn onClick={() => onStart()}>
+          INITIALIZE TERMINAL WORKSPACE
+        </LaunchBtn>
+      </TerminalBox>
+    </Container>
   );
 };
-

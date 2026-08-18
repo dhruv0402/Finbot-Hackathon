@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+backend/venv/
+backend/env/
+venv/
+.venv/
+
+# Builds & Outputs
+frontend/dist/
+frontend/build/
+*.pyc
+__pycache__/
+
+# Databases & local state
+*.db
+backend/session_store.db
+.env
+.DS_Store
