@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import styled from '@emotion/styled';
-import axios from 'axios';
-import { theme } from '../theme';
+import { getApiBase } from '../services/apiConfig';
 
 const TickerBar = styled.div`
   background-color: #070a11;
@@ -78,7 +75,7 @@ export const MarketTickerTape = () => {
   useEffect(() => {
     const fetchTickers = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/market/tickers');
+        const res = await axios.get(`${getApiBase()}/api/market/tickers`);
         if (res.data && res.data.tickers) {
           setTickers(res.data.tickers);
         }

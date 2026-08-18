@@ -1,9 +1,6 @@
-import axios from 'axios';
+import { getApiBase } from './apiConfig';
 
-// This is the endpoint Person 2 (backend) is building for you.
-// CORRECT
-// CORRECT
-const API_URL = 'http://localhost:8000/api/chat';
+const API_URL = `${getApiBase()}/api/chat`;
 
 /**
  * Sends a user's message and session ID to the backend.

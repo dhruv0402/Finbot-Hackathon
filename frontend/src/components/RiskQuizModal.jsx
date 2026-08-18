@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import axios from 'axios';
 import { theme } from '../theme';
+import { getApiBase } from '../services/apiConfig';
 
 const Container = styled.div`
   background-color: ${theme.colors.surface};
@@ -176,7 +177,7 @@ export const RiskQuizModal = ({ onComplete }) => {
 
   const calculateRisk = async () => {
     try {
-      const res = await axios.post('http://localhost:8000/api/risk-quiz', answers);
+      const res = await axios.post(`${getApiBase()}/api/risk-quiz`, answers);
       setResult(res.data);
       if (onComplete) onComplete(res.data.risk_appetite);
     } catch (e) {

@@ -11,6 +11,7 @@ import {
   Legend
 } from 'chart.js';
 import { theme } from '../theme';
+import { getApiBase } from '../services/apiConfig';
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -137,7 +138,7 @@ export const EfficientFrontierStressTest = ({ portfolioData }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const mptRes = await axios.get('http://localhost:8000/api/portfolio/mpt-efficient-frontier');
+        const mptRes = await axios.get(`${getApiBase()}/api/portfolio/mpt-efficient-frontier`);
         setMptData(mptRes.data);
 
         const capital = portfolioData?.capital || 500000;
@@ -148,7 +149,7 @@ export const EfficientFrontierStressTest = ({ portfolioData }) => {
           { asset_class: "Gold", percentage: 0.10 }
         ];
 
-        const stressRes = await axios.post('http://localhost:8000/api/portfolio/stress-test', {
+        const stressRes = await axios.post(`${getApiBase()}/api/portfolio/stress-test`, {
           capital,
           allocation
         });
@@ -174,7 +175,7 @@ export const EfficientFrontierStressTest = ({ portfolioData }) => {
           { asset_class: "Gold", percentage: 0.10, amount: 50000 }
         ]
       };
-      const res = await axios.post('http://localhost:8000/api/portfolio/export-report', payload);
+      const res = await axios.post(`${getApiBase()}/api/portfolio/export-report`, payload);
       if (res.data && res.data.html) {
         const printWindow = window.open('', '_blank');
         printWindow.document.write(res.data.html);

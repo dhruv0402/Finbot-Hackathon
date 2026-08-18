@@ -14,6 +14,7 @@ import {
   Filler
 } from 'chart.js';
 import { theme } from '../theme';
+import { getApiBase } from '../services/apiConfig';
 
 ChartJS.register(
   CategoryScale,
@@ -166,7 +167,7 @@ export const WealthSimulator = () => {
     const runSim = async () => {
       setLoading(true);
       try {
-        const res = await axios.post('http://localhost:8000/api/portfolio/simulate', {
+        const res = await axios.post(`${getApiBase()}/api/portfolio/simulate`, {
           initial_capital: initialCapital,
           monthly_contribution: monthlyContrib,
           time_horizon_years: horizonYears,
