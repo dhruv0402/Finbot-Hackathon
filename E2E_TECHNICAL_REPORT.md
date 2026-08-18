@@ -1,6 +1,6 @@
 # 🏛️ FinBot AI: End-to-End Technical Report & System Architecture Specification
 
-> **Architectural Blueprint, Quantitative Mathematical Formulations, Architecture Decision Records (ADRs), and Known Limitations Audit.**
+> **Architectural Blueprint, Quantitative Mathematical Formulations, Architecture Decision Records (ADRs), Data Provenance, and Known Limitations Audit.**
 > *Refined Specification for Recruiter Audits, Code Reviews, and LLM Context Exchange (Claude / GPT-4 / Gemini).*
 
 ---
@@ -40,7 +40,7 @@ graph TD
     subgraph Data & Math Models
         MPTService --> SLSQPSolver["scipy.optimize.minimize (SLSQP)"]
         PortfolioService --> MonteCarlo["Box-Muller GBM Simulation (1,000 Paths)"]
-        BacktestService --> NSEHistory["10-Yr Historical Returns (2015-2025)"]
+        BacktestService --> NSEHistory["NSE/BSE Historical Data Series (2015-2025)"]
     end
 ```
 
@@ -64,8 +64,9 @@ Solved using `scipy.optimize.minimize` with method `'SLSQP'`.
 
 ---
 
-### 2. Historical Backtesting Engine (2015–2025) & Rebalancing Drag
-The portfolio return in year $t$ with annual rebalancing to target weights $w_i$ and transaction fee drag $c = 0.001$ (0.1%):
+### 2. Historical Backtesting Engine (2015–2025) & Data Provenance
+- **Data Provenance**: Historical annual return series for asset classes in `backtest_service.py` are sourced from historical performance benchmarks (NSE Nifty 50 Index, CRISIL Composite Bond Index, and MCX Spot Gold price series) over the 2015–2025 period.
+- **Rebalancing Drag**: The portfolio return in year $t$ with annual rebalancing back to target weights $w_i$ and transaction fee drag $c = 0.001$ (0.1% per trade):
 
 $$R_{p, t} = \left( \sum_{i=1}^n w_i \cdot R_{i, t} \right) - c$$
 
@@ -105,7 +106,7 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 - **Status**: Accepted
 - **Context**: Portfolio optimization requires solving a convex quadratic programming problem under linear constraints.
 - **Decision**: Selected `scipy.optimize.minimize` with method `'SLSQP'` over `cvxpy`.
-- **Rationale**: CVXPY requires external C++ solver binaries (`OSQP`, `ECOS`, `SCS`) which introduce cross-platform build friction. SciPy is native, lightweight, and achieves numerical convergence in $< 5 \text{ms}$ for portfolio dimensions $N \le 50$.
+- **Rationale**: CVXPY requires external C++ solver binaries (`OSQP`, `ECOS`, `SCS`) which introduce cross-platform build friction. SciPy is native, lightweight, and typically converges in single-digit milliseconds for standard asset allocations ($N \le 50$).
 
 ### ADR 002: Single-Port Static File Delivery Architecture
 - **Status**: Accepted
@@ -124,8 +125,9 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 ## ⚠️ Known Limitations & Proactive Engineering Audit
 
 1. **Covariance Input Assumptions**: Pure Markowitz MPT relies on historical mean-variance inputs which can exhibit sensitivity to extreme market shocks. *Future Work*: Implementation of Black-Litterman asset allocation combining market equilibrium with investor views.
-2. **Tax Legislation Currency**: Tax parameters (Section 80C ELSS ₹1.5L cap and Section 112A LTCG ₹1.25L exemption) reflect the **Finance Act 2024**. Annual Union Budget updates require parameter revalidation.
+2. **Tax Legislation Currency**: Tax parameters (Section 80C ELSS ₹1.5L cap and Section 112A LTCG ₹1.25L exemption) reflect the Indian **Finance Act 2024**. Annual Union Budget amendments require parameter revalidation.
 3. **Session Persistence Scope**: Current sessions utilize in-memory storage suitable for single-node evaluation. Production deployment requires Redis / PostgreSQL persistence.
+4. **LLM API Provider Requirement**: `llm_service.py` defaults to deterministic NLP parsing when unauthenticated. Active LLM call dispatch requires supplying an API key (`OPENAI_API_KEY` or `GEMINI_API_KEY`) in the server environment.
 
 ---
 
@@ -149,7 +151,7 @@ All endpoints are hosted on `http://localhost:8000`:
 
 ## 🧪 Automated Test Verification (`unittest`)
 
-Executed via `python3 test_backend.py`:
+Executed via `python3 test_backend.py` (Reproducible via `python3 test_backend.py` or GitHub Actions CI):
 
 ```
 .........
@@ -159,7 +161,7 @@ Ran 9 tests in 0.250s
 OK
 ```
 
-Test suite coverage (`TestFinBotQuantSuite`):
+Test suite coverage (`TestFinBotQuantSuite` in `backend/test_backend.py`):
 1. `test_portfolio_math`: Asserts positive Sharpe ratio and expected returns.
 2. `test_monte_carlo`: Asserts median wealth growth > principal invested over 10-year horizon.
 3. `test_market_tickers`: Asserts minimum 8 tickers returned with valid sparkline arrays.
