@@ -206,8 +206,26 @@ async def classify_intent_and_extract(message: str) -> Dict[str, Any]:
     msg_lower = message.lower()
     entities = {}
 
-    # Extract numbers for capital / monthly investment
-    numbers = [int(s) for s in re.findall(r'\b\d+\b', message)]
+    # Normalize commas in numbers e.g. 500,000 -> 500000
+    cleaned_msg = message
+    for _ in range(3):
+        cleaned_msg = re.sub(r'(\d+),(\d+)', r'\1\2', cleaned_msg)
+
+    numbers = []
+    # Match Lakhs e.g., 5 Lakh / 5L
+    for m in re.findall(r'(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|l)\b', cleaned_msg, re.IGNORECASE):
+        numbers.append(int(float(m) * 100000))
+    # Match Crores e.g., 1 Crore / 1Cr
+    for m in re.findall(r'(\d+(?:\.\d+)?)\s*(?:crore|crores|cr)\b', cleaned_msg, re.IGNORECASE):
+        numbers.append(int(float(m) * 10000000))
+    # Match K e.g., 50k
+    for m in re.findall(r'(\d+(?:\.\d+)?)\s*k\b', cleaned_msg, re.IGNORECASE):
+        numbers.append(int(float(m) * 1000))
+    # Match standard raw numbers
+    for n in [int(s) for s in re.findall(r'\b\d+\b', cleaned_msg)]:
+        if n not in numbers and n > 0:
+            numbers.append(n)
+
     if numbers:
         if len(numbers) >= 2:
             entities["capital"] = max(numbers)
