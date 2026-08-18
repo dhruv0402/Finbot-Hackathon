@@ -6,8 +6,8 @@ import { ChatInterface } from './components/ChatInterface';
 import { PortfolioDisplay } from './components/PortfolioDisplay';
 import { WealthSimulator } from './components/WealthSimulator';
 import { RiskQuizModal } from './components/RiskQuizModal';
-import { WelcomeScreen } from './components/WelcomeScreen';
 import { EfficientFrontierStressTest } from './components/EfficientFrontierStressTest';
+import { TaxHarvestingWidget } from './components/TaxHarvestingWidget';
 
 const AppWrapper = styled.div`
   display: flex;
