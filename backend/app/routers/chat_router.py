@@ -53,6 +53,7 @@ async def stress_test_endpoint(payload: Dict[str, Any]):
     return run_portfolio_stress_test(capital, allocations)
 
 from app.services.tax_service import calculate_tax_loss_harvesting
+from app.services.backtest_service import run_historical_backtest
 
 @router.post("/api/portfolio/tax-harvesting")
 async def tax_harvesting_endpoint(payload: Dict[str, Any]):
@@ -63,6 +64,15 @@ async def tax_harvesting_endpoint(payload: Dict[str, Any]):
     losses = float(payload.get("unrealized_losses", 40000))
     days = int(payload.get("holding_period_days", 180))
     return calculate_tax_loss_harvesting(gains, losses, days)
+
+@router.post("/api/portfolio/backtest")
+async def backtest_endpoint(payload: Dict[str, Any]):
+    """
+    Executes a 10-year historical backtest (2015-2025) on allocation weights with rebalance fee drag.
+    """
+    capital = float(payload.get("capital", 500000))
+    allocation = payload.get("allocation", [])
+    return run_historical_backtest(capital, allocation)
 
 
 @router.post("/api/risk-quiz")

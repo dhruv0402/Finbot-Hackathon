@@ -9,6 +9,8 @@ from app.services.mpt_service import compute_efficient_frontier
 from app.services.stress_test_service import run_portfolio_stress_test
 from app.services.pdf_report_service import generate_institutional_report_html
 
+from app.services.backtest_service import run_historical_backtest
+
 class TestFinBotQuantSuite(unittest.TestCase):
 
     def test_portfolio_math(self):
@@ -72,6 +74,17 @@ class TestFinBotQuantSuite(unittest.TestCase):
         html = generate_institutional_report_html(data)
         self.assertIn("FINBOT AI WEALTH DESK", html)
         self.assertIn("₹500,000", html)
+
+    def test_backtest(self):
+        allocations = [
+            {"asset_class": "Equity Funds", "percentage": 0.40},
+            {"asset_class": "Debt Instruments", "percentage": 0.35},
+            {"asset_class": "Direct Equity", "percentage": 0.15},
+            {"asset_class": "Gold", "percentage": 0.10}
+        ]
+        bt_res = run_historical_backtest(500000, allocations)
+        self.assertEqual(len(bt_res["portfolio_curve"]), 11)
+        self.assertGreater(bt_res["cagr_portfolio_pct"], 0)
 
     def test_edge_cases(self):
         """

@@ -1,6 +1,6 @@
 # 🏛️ FinBot AI: End-to-End Technical Report & System Architecture Specification
 
-> **Architectural Blueprint, Quantitative Mathematical Formulations, API Specifications, and Production Readiness Audit.**
+> **Architectural Blueprint, Quantitative Mathematical Formulations, Architecture Decision Records (ADRs), and Known Limitations Audit.**
 > *Refined Specification for Recruiter Audits, Code Reviews, and LLM Context Exchange (Claude / GPT-4 / Gemini).*
 
 ---
@@ -9,6 +9,7 @@
 
 **FinBot AI** is an institutional-grade, recruiter-ready **Quantitative Wealth Management & Financial Advisory Platform**. It translates investor financial prompts into statistical asset allocations backed by:
 - **Markowitz Modern Portfolio Theory (MPT)** Efficient Frontier optimization (SciPy SLSQP quadratic solver).
+- **10-Year Historical Backtesting Engine (2015-2025)** on NSE/BSE asset allocation weights with 0.1% annual rebalancing fee drag.
 - **1,000-Path Stochastic Monte Carlo Simulations** utilizing Geometric Brownian Motion with Box-Muller random shocks.
 - **Historical Crisis Stress-Testing** evaluating drawdowns under the 2008 GFC, 2020 COVID shock, and 2022 Inflation rate crisis.
 - **Indian Tax-Loss Harvesting Engine** (Section 80C ELSS tax deduction & LTCG ₹1.25L exemption rules).
@@ -29,6 +30,7 @@ graph TD
         Router --> LLMService["Intent Classifier & Entity Parser (backend/app/services/llm_service.py)"]
         Router --> PortfolioService["Quantitative Engine (backend/app/services/portfolio_service.py)"]
         Router --> MPTService["SciPy MPT Optimizer (backend/app/services/mpt_service.py)"]
+        Router --> BacktestService["Historical Backtest Engine (backend/app/services/backtest_service.py)"]
         Router --> StressService["Crash Stress Test Engine (backend/app/services/stress_test_service.py)"]
         Router --> TaxService["Section 70/71 Tax Engine (backend/app/services/tax_service.py)"]
         Router --> MarketService["Live Market Streamer (backend/app/services/market_data_service.py)"]
@@ -38,7 +40,7 @@ graph TD
     subgraph Data & Math Models
         MPTService --> SLSQPSolver["scipy.optimize.minimize (SLSQP)"]
         PortfolioService --> MonteCarlo["Box-Muller GBM Simulation (1,000 Paths)"]
-        MarketService --> IndianTickers["NSE / BSE Tickers (NIFTY 50, SENSEX, RELIANCE, TCS)"]
+        BacktestService --> NSEHistory["10-Yr Historical Returns (2015-2025)"]
     end
 ```
 
@@ -62,7 +64,20 @@ Solved using `scipy.optimize.minimize` with method `'SLSQP'`.
 
 ---
 
-### 2. Stochastic Monte Carlo Engine (Geometric Brownian Motion)
+### 2. Historical Backtesting Engine (2015–2025) & Rebalancing Drag
+The portfolio return in year $t$ with annual rebalancing to target weights $w_i$ and transaction fee drag $c = 0.001$ (0.1%):
+
+$$R_{p, t} = \left( \sum_{i=1}^n w_i \cdot R_{i, t} \right) - c$$
+
+The realized Compound Annual Growth Rate (CAGR) is given by:
+
+$$\text{CAGR} = \left( \frac{V_N}{V_0} \right)^{\frac{1}{N}} - 1$$
+
+Evaluated against the Nifty 50 Buy-and-Hold benchmark over the 10-year period.
+
+---
+
+### 3. Stochastic Monte Carlo Engine (Geometric Brownian Motion)
 Asset price paths $S_t$ are modeled using the stochastic differential equation:
 
 $$dS_t = \mu S_t dt + \sigma S_t dW_t$$
@@ -75,7 +90,7 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 
 ---
 
-### 3. Parametric Value at Risk (VaR 95%) & Horizon Scaling Footnote
+### 4. Parametric Value at Risk (VaR 95%) & Horizon Scaling Footnote
 - **Single-Period Parametric VaR (95% Confidence)**:
   $$\text{VaR}_{95\%, 1\text{yr}} = 1.645 \cdot \sigma_p - \mu_p$$
 - **Multi-Period Horizon Scaling Footnote**:
@@ -84,74 +99,33 @@ Evaluated over 1,000 paths across 1–35 year horizons to derive the 10th percen
 
 ---
 
-## 📁 Repository Directory & Module Map
+## 🏛 Architecture Decision Records (ADRs)
 
-```
-./
-├── README.md                          # Executive README with quickstart & badges
-├── E2E_TECHNICAL_REPORT.md            # Detailed technical specification (this document)
-├── start.py                           # 1-Click launcher script (builds frontend & runs Uvicorn)
-├── start.sh                           # Shell wrapper for start.py
-├── docker-compose.yml                 # Docker container setup
-├── backend/
-│   ├── app/
-│   │   ├── main.py                    # Single-Port FastAPI app & StaticFiles mount
-│   │   ├── models/
-│   │   │   └── portfolio_models.py    # Pydantic schemas (PortfolioMetrics, MonteCarloRequest)
-│   │   ├── routers/
-│   │   │   └── chat_router.py         # All REST API endpoints (/api/chat, /api/portfolio/*)
-│   │   └── services/
-│   │       ├── portfolio_service.py   # Core math metrics & Monte Carlo engine
-│   │       ├── mpt_service.py         # Markowitz Efficient Frontier SciPy solver
-│   │       ├── stress_test_service.py # 2008, 2020, 2022 historical crisis simulator
-│   │       ├── tax_service.py         # Section 80C ELSS & LTCG exemption calculator
-│   │       ├── market_data_service.py # Non-blocking live Indian ticker feed (NSE/BSE)
-│   │       ├── llm_service.py         # Natural Language Intent & Entity Parser
-│   │       └── pdf_report_service.py  # Printable HTML/PDF report template generator
-│   └── test_backend.py                # Python unittest automated test suite
-└── frontend/
-    ├── package.json                   # React 18 + Emotion + Chart.js dependencies
-    ├── vite.config.js                 # Vite config (host: 0.0.0.0, port: 5173, CORS enabled)
-    ├── dist/                          # Compiled production static bundle
-    └── src/
-        ├── App.jsx                    # Header, Bloomberg theme, & 6-tab navigation
-        ├── theme.js                   # Institutional dark palette (#0b0f17, IBM Plex)
-        ├── services/
-        │   ├── api.js                 # Chat POST request handler
-        │   └── apiConfig.js           # Dynamic window.location.origin resolver
-        └── components/
-            ├── MarketTickerTape.jsx   # Top ticker tape with NSE/BSE stock sparklines
-            ├── WelcomeScreen.jsx      # Launchpad screen with Indian investment presets
-            ├── ChatInterface.jsx      # Conversational AI terminal with preset pills
-            ├── PortfolioDisplay.jsx   # High-density metrics grid & allocation doughnut
-            ├── WealthSimulator.jsx    # Interactive 1,000-path Monte Carlo line chart
-            ├── EfficientFrontierStressTest.jsx # MPT scatter plot & crisis cards
-            ├── TaxHarvestingWidget.jsx# Tax & Savings Guide with Section 80C & LTCG cards
-            └── RiskQuizModal.jsx      # 5-question quantitative risk questionnaire
-```
+### ADR 001: SciPy SLSQP vs. CVXPY Solver
+- **Status**: Accepted
+- **Context**: Portfolio optimization requires solving a convex quadratic programming problem under linear constraints.
+- **Decision**: Selected `scipy.optimize.minimize` with method `'SLSQP'` over `cvxpy`.
+- **Rationale**: CVXPY requires external C++ solver binaries (`OSQP`, `ECOS`, `SCS`) which introduce cross-platform build friction. SciPy is native, lightweight, and achieves numerical convergence in $< 5 \text{ms}$ for portfolio dimensions $N \le 50$.
+
+### ADR 002: Single-Port Static File Delivery Architecture
+- **Status**: Accepted
+- **Context**: Standard React + FastAPI setups require managing two ports (`5173` and `8000`), introducing CORS overhead and environment mismatch.
+- **Decision**: Mounted compiled React static assets (`frontend/dist`) directly at FastAPI root `/` via `StaticFiles`.
+- **Rationale**: Eliminates cross-origin requests, prevents port collision, and enables 1-command evaluation (`python3 start.py`).
+
+### ADR 003: Hybrid Rule-Based NLP & LLM Dispatch Engine
+- **Status**: Accepted
+- **Context**: Financial entity parsing (`capital`, `monthly_investment`, `risk_appetite`) requires sub-10ms response times.
+- **Decision**: Built a hybrid intent parser (`llm_service.py`) using deterministic regex entity extraction with optional external LLM API fallback.
+- **Rationale**: Guarantees zero-latency, offline execution while supporting external LLM capabilities when API credentials are provided.
 
 ---
 
-## 🔍 Precise Architectural Clarification: Natural Language Intent & Entity Parser (`llm_service.py`)
+## ⚠️ Known Limitations & Proactive Engineering Audit
 
-`llm_service.py` is engineered as a **hybrid Natural Language Processing (NLP) & Rule-Based Fallback Parser**:
-- **Primary Dual Execution**: Supports dynamic LLM API dispatch (OpenAI / Gemini) when API keys are configured in environment variables.
-- **Deterministic Rule Engine**: When unauthenticated, it utilizes regex currency normalizers (`50k` $\rightarrow 50,000$, `5 Lakh` $\rightarrow 500,000$), question keyword priority flags (`explain`, `what is`), and financial term dictionary matching to classify user intent without external latency.
-
----
-
-## ⚖️ Tax Legislation Disclaimer Footnote
-
-> **Tax Legislation Notice**: Tax rules implemented in `tax_service.py` (Section 80C ELSS ₹1.5 Lakh annual deduction cap and Section 112A LTCG ₹1.25 Lakh tax-exempt profit threshold) reflect the Indian **Finance Act 2024**. Future Union Budget amendments require re-validation of rate parameters in `tax_service.py`.
-
----
-
-## 🔒 Security Architecture & Production Hardening Roadmap
-
-While designed for self-contained single-port hackathon evaluation, production hardening requires:
-1. **Authentication & Authorization**: Integration of `OAuth2PasswordBearer` with JWT access tokens.
-2. **Rate Limiting**: Redis Token Bucket rate limiting (`100 req/min` per IP) via `slowapi`.
-3. **Session Store**: Session state migration from in-memory dictionary to Redis / PostgreSQL.
+1. **Covariance Input Assumptions**: Pure Markowitz MPT relies on historical mean-variance inputs which can exhibit sensitivity to extreme market shocks. *Future Work*: Implementation of Black-Litterman asset allocation combining market equilibrium with investor views.
+2. **Tax Legislation Currency**: Tax parameters (Section 80C ELSS ₹1.5L cap and Section 112A LTCG ₹1.25L exemption) reflect the **Finance Act 2024**. Annual Union Budget updates require parameter revalidation.
+3. **Session Persistence Scope**: Current sessions utilize in-memory storage suitable for single-node evaluation. Production deployment requires Redis / PostgreSQL persistence.
 
 ---
 
@@ -165,6 +139,7 @@ All endpoints are hosted on `http://localhost:8000`:
 | `GET` | `/api/market/tickers` | None | `{"status": "success", "tickers": List[dict]}` | Streams live Indian stock sparklines (NIFTY 50, SENSEX, RELIANCE, TCS) |
 | `POST` | `/api/portfolio/simulate` | `{"initial_capital": float, "monthly_contribution": float, "time_horizon_years": int, "risk_level": str}` | `{"years": List[int], "principal": List[float], "median_path": List[float], "bull_path": List[float], "bear_path": List[float]}` | 1,000-path stochastic Monte Carlo simulation |
 | `GET` | `/api/portfolio/mpt-efficient-frontier` | None | `{"frontier": List[dict], "tangency_portfolio": dict, "min_volatility_portfolio": dict}` | Calculates Markowitz Efficient Frontier curve points via SLSQP |
+| `POST` | `/api/portfolio/backtest` | `{"capital": float, "allocation": List[dict]}` | `{"years": List[int], "portfolio_curve": List[float], "cagr_portfolio_pct": float, "cagr_benchmark_pct": float}` | 10-year historical backtesting (2015-2025) with rebalance fee drag |
 | `POST` | `/api/portfolio/stress-test` | `{"capital": float, "allocation": List[dict]}` | `{"scenarios": List[dict]}` | Simulates portfolio drawdown under 2008 GFC, 2020 COVID, and 2022 Inflation shocks |
 | `POST` | `/api/portfolio/tax-harvesting` | `{"realized_gains": float, "unrealized_losses": float, "holding_period_days": int}` | `{"gain_type": str, "tax_before_harvest": float, "tax_after_harvest": float, "tax_saved": float, "recommendation": str}` | Computes Section 70/71 Income Tax Act loss offset savings |
 | `POST` | `/api/portfolio/export-report` | `PortfolioData` | `{"status": "success", "html": str}` | Generates printable institutional PDF wealth report HTML |
@@ -177,9 +152,9 @@ All endpoints are hosted on `http://localhost:8000`:
 Executed via `python3 test_backend.py`:
 
 ```
-........
+.........
 ----------------------------------------------------------------------
-Ran 8 tests in 0.244s
+Ran 9 tests in 0.250s
 
 OK
 ```
@@ -190,9 +165,10 @@ Test suite coverage (`TestFinBotQuantSuite`):
 3. `test_market_tickers`: Asserts minimum 8 tickers returned with valid sparkline arrays.
 4. `test_llm_fallback`: Asserts entity parser correctly extracts numeric capital and risk appetite.
 5. `test_mpt`: Asserts SciPy SLSQP solver yields >5 frontier points and positive Sharpe ratio.
-6. `test_stress_test`: Asserts historical crash drawdown calculations across 3 crisis scenarios.
-7. `test_pdf_report`: Asserts HTML report rendering contains target portfolio values.
-8. `test_edge_cases`: Asserts Pydantic `ValidationError` exception handling on negative inputs (`capital=-50000`) and single-asset degenerate allocations.
+6. `test_backtest`: Asserts 10-year historical backtest outputs valid CAGR and equity curves.
+7. `test_stress_test`: Asserts historical crash drawdown calculations across 3 crisis scenarios.
+8. `test_pdf_report`: Asserts HTML report rendering contains target portfolio values.
+9. `test_edge_cases`: Asserts Pydantic `ValidationError` exception handling on negative inputs (`capital=-50000`) and single-asset degenerate allocations.
 
 ---
 
