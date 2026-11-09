@@ -54,6 +54,38 @@ async def stress_test_endpoint(payload: Dict[str, Any]):
 
 from app.services.tax_service import calculate_tax_loss_harvesting
 from app.services.backtest_service import run_historical_backtest
+from app.services.marketprobe_service import (
+    audit_stock_tip,
+    get_top_audited_equity_recommendations,
+    get_audited_creators
+)
+
+@router.post("/api/audit/stock-tip")
+async def audit_stock_tip_endpoint(payload: Dict[str, Any]):
+    """
+    MarketProbe Bayesian AI Fact-Checking & Alpha Gating Endpoint.
+    Extracts NSE tickers, checks risk-to-reward ratios, and applies XGBoost conviction scoring.
+    """
+    text = payload.get("text", "")
+    is_sebi = bool(payload.get("is_sebi", False))
+    influencer_id = payload.get("influencer_id")
+    if not text:
+        raise HTTPException(status_code=400, detail="Missing text to audit.")
+    return audit_stock_tip(text=text, is_sebi=is_sebi, influencer_id=influencer_id)
+
+@router.get("/api/audit/top-recommendations")
+async def top_recommendations_endpoint(limit: int = 6):
+    """
+    Returns top historical high-conviction audited trades from marketprobe.db.
+    """
+    return {"status": "success", "recommendations": get_top_audited_equity_recommendations(limit=limit)}
+
+@router.get("/api/audit/creators")
+async def audited_creators_endpoint(limit: int = 15):
+    """
+    Returns top audited finfluencers and institutional desks with empirical win-rate statistics.
+    """
+    return {"status": "success", "creators": get_audited_creators(limit=limit)}
 
 @router.post("/api/portfolio/tax-harvesting")
 async def tax_harvesting_endpoint(payload: Dict[str, Any]):

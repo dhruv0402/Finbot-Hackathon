@@ -98,6 +98,31 @@ def generate_portfolio(request: PortfolioRequest) -> PortfolioResponse:
         amount_to_allocate = int(request.capital * percentage)
         source_db = ASSET_CLASS_TO_DB.get(asset_class, [])
         
+        # Dynamic MarketProbe integration for Direct Equity:
+        if asset_class == "Direct Equity":
+            try:
+                from app.services.marketprobe_service import get_top_audited_equity_recommendations
+                audited_equities = get_top_audited_equity_recommendations(limit=2)
+                if audited_equities:
+                    recommendations_list = [
+                        Recommendation(
+                            name=f"{item['company_name']} ({item['ticker']})",
+                            details=f"Audited by {item['creator']} (Conviction: {item['conviction_score']}%, RR: {item['risk_reward_ratio']})",
+                            ticker=item['ticker'],
+                            expected_return=f"{item['historical_peak_return_pct']}%" if item.get('historical_peak_return_pct') else "14.5%"
+                        ) for item in audited_equities
+                    ]
+                    asset_allocation = AssetAllocation(
+                        asset_class=asset_class,
+                        amount=amount_to_allocate,
+                        percentage=percentage,
+                        recommendations=recommendations_list
+                    )
+                    final_allocations.append(asset_allocation)
+                    continue
+            except Exception as e:
+                pass
+
         num_to_pick = min(len(source_db), 2) if source_db else 0
         recommendations_list: List[Recommendation] = []
         if num_to_pick > 0:

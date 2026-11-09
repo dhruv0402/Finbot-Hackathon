@@ -10,6 +10,11 @@ from app.services.stress_test_service import run_portfolio_stress_test
 from app.services.pdf_report_service import generate_institutional_report_html
 
 from app.services.backtest_service import run_historical_backtest
+from app.services.marketprobe_service import (
+    audit_stock_tip,
+    get_top_audited_equity_recommendations,
+    get_audited_creators
+)
 
 class TestFinBotQuantSuite(unittest.TestCase):
 
@@ -99,6 +104,32 @@ class TestFinBotQuantSuite(unittest.TestCase):
         alloc_single = [{"asset_class": "Equity Funds", "percentage": 1.0}]
         st_single = run_portfolio_stress_test(100000, alloc_single)
         self.assertEqual(len(st_single["stress_test_scenarios"]), 3)
+
+    def test_marketprobe_audit_and_gating(self):
+        """
+        Verifies MarketProbe integration: Precision NER ticker extraction,
+        XGBoost Bayesian conviction scoring, and audited creator retrieval.
+        """
+        # Test 1: Tip audit with known NSE ticker
+        audit_res = audit_stock_tip("Buy Reliance at 1320 target 1450 stoploss 1280", is_sebi=True)
+        self.assertTrue(audit_res["audited"])
+        self.assertEqual(audit_res["ticker"], "RELIANCE.NS")
+        self.assertEqual(audit_res["action"], "BUY")
+        self.assertGreaterEqual(audit_res["conviction_score_pct"], 0.0)
+        self.assertIn("conviction_score_pct", audit_res)
+
+        # Test 2: Top audited recommendations retrieval from SQLite
+        top_recs = get_top_audited_equity_recommendations(limit=3)
+        self.assertIsInstance(top_recs, list)
+        self.assertGreater(len(top_recs), 0)
+        self.assertIn("ticker", top_recs[0])
+        self.assertIn("conviction_score", top_recs[0])
+
+        # Test 3: Audited creators win-rate stats
+        creators = get_audited_creators(limit=5)
+        self.assertIsInstance(creators, list)
+        self.assertGreater(len(creators), 0)
+        self.assertIn("win_rate_pct", creators[0])
 
 if __name__ == "__main__":
     unittest.main()

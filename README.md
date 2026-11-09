@@ -32,17 +32,22 @@ Designed with an institutional Bloomberg Terminal aesthetic (`#0b0f17` dark slat
 - **Framework**: React 18 + Vite
 - **Data Visualization**: Chart.js (`react-chartjs-2`) for Monte Carlo line projections & asset allocation doughnuts
 - **Styling**: Emotion CSS-in-JS (Dark Charcoal Slate theme, IBM Plex Mono & IBM Plex Sans)
-- **Navigation**: 6 Executive Desks (`[1] ASK FINBOT`, `[2] PORTFOLIO PLAN`, `[3] SIP WEALTH ENGINE`, `[4] RISK & FRONTIER`, `[5] TAX & SAVINGS GUIDE`, `[6] RISK QUIZ`)
+- **Navigation**: 7 Executive Desks (`[1] ASK FINBOT`, `[2] PORTFOLIO PLAN`, `[3] SIP WEALTH ENGINE`, `[4] RISK & FRONTIER`, `[5] TAX & SAVINGS`, `[6] STOCK AUDITOR (ML)`, `[7] RISK QUIZ`)
 
 ---
 
 ## 🚀 Executive Features
 
-### 1. 📐 Markowitz Modern Portfolio Theory (MPT) Optimization
+### 1. 🤖 MarketProbe Multi-Modal Audit & Bayesian Alpha Gater (NEW)
+- **Precision Financial NER**: Sub-2ms deterministic regex fast-path and NLP entity extractor over **2,559 NSE tickers** and market benchmarks.
+- **Bayesian Conviction Gater (XGBoost)**: Trained on **995+ audited financial calls** from 51 creators/institutional desks, lifting realized win rates from **40.3% to 75.0%** ($\ge 60\%$ conviction).
+- **Direct Equity Integration**: Dynamically populates FinBot's Direct Equity asset sleeve with top audited, high-conviction trades from `marketprobe.db`.
+
+### 2. 📐 Markowitz Modern Portfolio Theory (MPT) Optimization
 - Solves for the **Efficient Frontier Risk vs Return Curve**.
 - Computes the **Tangency Portfolio (Maximum Sharpe Ratio)** and **Minimum Variance Portfolio**.
 
-### 2. ⚡ Historical Crisis Stress-Testing Engine
+### 3. ⚡ Historical Crisis Stress-Testing Engine
 - Simulates portfolio drawdowns under 3 historical market shocks:
   - **2008 Global Financial Crisis** (-52.5% equity, +8.5% debt, +21.0% gold)
   - **2020 COVID Flash Shock** (-38.0% equity, +4.2% debt, +12.8% gold)

@@ -8,6 +8,7 @@ import { WealthSimulator } from './components/WealthSimulator';
 import { RiskQuizModal } from './components/RiskQuizModal';
 import { EfficientFrontierStressTest } from './components/EfficientFrontierStressTest';
 import { TaxHarvestingWidget } from './components/TaxHarvestingWidget';
+import { MarketProbeAuditWidget } from './components/MarketProbeAuditWidget';
 import { WelcomeScreen } from './components/WelcomeScreen';
 
 const AppWrapper = styled.div`
@@ -163,10 +164,13 @@ function App() {
             [4] RISK &amp; FRONTIER
           </TabButton>
           <TabButton active={activeTab === 'tax'} onClick={() => setActiveTab('tax')}>
-            [5] TAX &amp; SAVINGS GUIDE
+            [5] TAX &amp; SAVINGS
+          </TabButton>
+          <TabButton active={activeTab === 'audit'} onClick={() => setActiveTab('audit')}>
+            [6] STOCK AUDITOR (ML)
           </TabButton>
           <TabButton active={activeTab === 'quiz'} onClick={() => setActiveTab('quiz')}>
-            [6] RISK QUIZ
+            [7] RISK QUIZ
           </TabButton>
         </NavTabs>
       </MainHeader>
@@ -180,6 +184,7 @@ function App() {
         {activeTab === 'simulator' && <WealthSimulator />}
         {activeTab === 'mpt' && <EfficientFrontierStressTest portfolioData={activePortfolio} />}
         {activeTab === 'tax' && <TaxHarvestingWidget />}
+        {activeTab === 'audit' && <MarketProbeAuditWidget />}
         {activeTab === 'quiz' && <RiskQuizModal onComplete={handleQuizComplete} />}
       </ContentArea>
     </AppWrapper>
