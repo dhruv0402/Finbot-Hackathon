@@ -307,67 +307,60 @@ async def classify_intent_and_extract(message: str) -> Dict[str, Any]:
 
 async def answer_general_question(message: str) -> str:
     """
-    Answers questions using Hybrid Vector RAG + Gemini Flash (with grounded deterministic fallback).
+    Answers questions using Orchestrated LLM Load Balancer with Vector RAG & Guardrails:
+    1. Input Guardrail: Off-domain rejection, PII masking, Prompt Injection Defense.
+    2. Vector RAG: FAISS similarity search over Finance Act 2024 & Quant corpus.
+    3. Load Balancer Router: Auto-failover across Gemini 3.5 Flash -> Flash Lite -> Llama 3.1.
+    4. Output Guardrail: SEBI regulatory compliance and risk disclaimers.
     """
     from app.services.rag_service import search_knowledge_base
+    from app.services.guardrails_service import FinancialGuardrailEngine
+    from app.services.llm_orchestrator import get_orchestrator
 
-    # 1. Query Vector RAG Knowledge Base (FAISS)
-    context_chunks = search_knowledge_base(message, top_k=2)
+    # 1. PII Sanitization
+    sanitized_message = FinancialGuardrailEngine.sanitize_and_mask_pii(message)
 
-    # If query is completely off-domain (e.g. "photosynthesis") and has no vector similarity
-    msg_lower = message.lower()
-    FINANCIAL_TOPICS = [
-        "invest", "stock", "portfolio", "share", "mutual fund", "sip", "debt", "bond",
-        "gold", "sharpe", "var", "value at risk", "rebalance", "crypto", "tax", "elss",
-        "equity", "nifty", "sensex", "return", "cagr", "dividend", "etf", "capital",
-        "risk", "drawdown", "loss", "profit", "wealth", "asset", "inflation", "market",
-        "finance", "fund", "money", "ltcg", "stcg", "sebi", "80c", "112a", "111a"
-    ]
-    is_finance_related = bool(context_chunks) or any(k in msg_lower for k in FINANCIAL_TOPICS)
+    # 2. Vector RAG Retrieval
+    context_chunks = search_knowledge_base(sanitized_message, top_k=2)
 
-    if not is_finance_related:
-        return (
-            "FinBot AI is an institutional wealth management and quantitative finance advisor. "
-            "I specialize in asset allocation, portfolio risk modeling, tax optimization, and NSE/BSE market analysis. "
-            "Please ask a question related to investing, personal finance, or portfolio strategy!"
-        )
+    # 3. Pre-generation Input Guardrails
+    is_safe, rejection = FinancialGuardrailEngine.check_input_guardrails(sanitized_message, context_chunks)
+    if not is_safe:
+        return rejection
 
-    # 2. Try Gemini 1.5 Flash with RAG Context if API key provided
-    if GEMINI_API_KEY:
-        context_str = ""
-        if context_chunks:
-            context_str = "Verified Regulatory & Market Context:\n" + "\n".join([f"- {c['topic']}: {c['content']}" for c in context_chunks])
-        
-        system_instruction = (
-            "You are FinBot, an institutional AI financial advisor specializing in Indian markets (NSE/BSE). "
-            "Answer concisely with exact figures, citing Indian tax laws (Finance Act 2024) or quant formulas when applicable."
-        )
-        prompt = f"{context_str}\n\nUser Question: {message}\nProvide a concise, quantitative answer (under 120 words):"
-        gemini_ans = await generate_gemini_response(prompt, system_instruction=system_instruction)
-        if gemini_ans:
-            return gemini_ans
-
-    # 3. Try Local Ollama / Llama if running
-    try:
-        escaped = message.replace('"', '\\"')
-        rag_context = ""
-        if context_chunks:
-            rag_context = f" Context: {context_chunks[0]['content']}"
-        prompt = f"You are FinBot, an institutional AI financial advisor. Answer concisely with concrete data: \"{escaped}\".{rag_context}"
-        client = get_llama_client()
-        raw = await client.generate(prompt, max_tokens=256)
-        text = raw.strip()
-        if text.startswith("```"):
-            text = text.strip("`\n ")
-        if text:
-            return text
-    except Exception:
-        pass
-
-    # 4. Grounded Extractive Fallback: Use top RAG context chunk directly!
+    # 4. Orchestrated LLM Load Balancer Execution
+    context_str = ""
     if context_chunks:
-        top_chunk = context_chunks[0]
-        return f"{top_chunk['content']}"
+        context_str = "Verified Regulatory & Market Context:\n" + "\n".join([f"- {c['topic']}: {c['content']}" for c in context_chunks])
+
+    system_instruction = (
+        "You are FinBot, an institutional AI financial advisor specializing in Indian markets (NSE/BSE). "
+        "Answer concisely with exact figures, citing Indian tax laws (Finance Act 2024) or quant formulas when applicable."
+    )
+    prompt = f"{context_str}\n\nUser Question: {sanitized_message}\nProvide a concise, quantitative answer (under 120 words):"
+
+    orchestrator = get_orchestrator()
+    response_text, provider_used = await orchestrator.execute_generation(prompt, system_instruction=system_instruction)
+
+    # 5. Fallback Tier if Cloud Nodes Exhausted / Offline
+    if not response_text:
+        if context_chunks:
+            response_text = context_chunks[0]['content']
+        else:
+            msg_lower = sanitized_message.lower()
+            if "sharpe" in msg_lower:
+                response_text = "The Sharpe Ratio measures risk-adjusted return by dividing portfolio excess return over the risk-free rate by annual volatility. A Sharpe Ratio above 1.5 indicates exceptional risk-adjusted performance."
+            elif "var" in msg_lower or "value at risk" in msg_lower:
+                response_text = "Value at Risk (VaR 95%) represents the maximum expected loss over a specific timeframe with 95% confidence under normal market conditions."
+            elif "rebalan" in msg_lower:
+                response_text = "Portfolio rebalancing resets your asset distribution back to target weights. We recommend threshold rebalancing whenever an asset class drifts more than 5% from target."
+            elif "tax" in msg_lower or "elss" in msg_lower:
+                response_text = "Equity Linked Savings Schemes (ELSS) offer tax deductions under Section 80C up to ₹1.5 Lakhs with a 3-year lock-in period, providing higher historical returns than standard PPF."
+            else:
+                response_text = "FinBot Quantitative Advisory: To evaluate allocation strategies, historical crisis drawdowns, and Monte Carlo wealth projections for your financial goals, head to the Portfolio Plan or SIP Wealth Engine tab!"
+
+    # 6. Post-generation Output Guardrail (SEBI Compliance)
+    return FinancialGuardrailEngine.check_output_guardrails(response_text)
 
     if "sharpe" in msg_lower:
         return "The Sharpe Ratio measures risk-adjusted return by dividing portfolio excess return over the risk-free rate by annual volatility. A Sharpe Ratio above 1.5 indicates exceptional risk-adjusted performance."

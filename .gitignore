@@ -16,3 +16,4 @@ __pycache__/
 backend/session_store.db
 .env
 .DS_Store
+backend/.env
