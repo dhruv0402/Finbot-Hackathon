@@ -288,6 +288,22 @@ async def answer_general_question(message: str) -> str:
         pass
 
     msg_lower = message.lower()
+
+    FINANCIAL_TOPICS = [
+        "invest", "stock", "portfolio", "share", "mutual fund", "sip", "debt", "bond",
+        "gold", "sharpe", "var", "value at risk", "rebalance", "crypto", "tax", "elss",
+        "equity", "nifty", "sensex", "return", "cagr", "dividend", "etf", "capital",
+        "risk", "drawdown", "loss", "profit", "wealth", "asset", "inflation", "market"
+    ]
+    is_finance_related = any(k in msg_lower for k in FINANCIAL_TOPICS)
+
+    if not is_finance_related:
+        return (
+            "FinBot AI is an institutional wealth management and quantitative finance advisor. "
+            f"I specialize in asset allocation, portfolio risk modeling, tax optimization, and NSE/BSE market analysis. "
+            "Please ask a question related to investing, personal finance, or portfolio strategy!"
+        )
+
     if "sharpe" in msg_lower:
         return "The Sharpe Ratio measures risk-adjusted return by dividing portfolio excess return over the risk-free rate by annual volatility. A Sharpe Ratio above 1.5 indicates exceptional risk-adjusted performance."
     elif "var" in msg_lower or "value at risk" in msg_lower:
@@ -299,7 +315,10 @@ async def answer_general_question(message: str) -> str:
     elif "tax" in msg_lower or "elss" in msg_lower:
         return "Equity Linked Savings Schemes (ELSS) offer tax deductions under Section 80C up to ₹1.5 Lakhs with a 3-year lock-in period, providing higher historical returns than standard PPF."
     else:
-        return f"FinBot Quantitative Engine: To optimize your financial strategy for '{message}', utilize our Portfolio Command Center tab to analyze Sharpe Ratios, Monte Carlo compound projections, and multi-asset class allocation risks."
+        return (
+            f"FinBot Quantitative Advisory: To evaluate allocation strategies, historical crisis drawdowns, "
+            f"and Monte Carlo wealth projections for your financial goals, head to the Portfolio Plan or SIP Wealth Engine tab!"
+        )
 
 
 async def present_portfolio(portfolio_json: Dict[str, Any]) -> str:
