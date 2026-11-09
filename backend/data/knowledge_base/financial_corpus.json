@@ -1,0 +1,62 @@
+[
+  {
+    "id": "tax_ltcg_112a",
+    "topic": "Long Term Capital Gains Tax (Section 112A)",
+    "category": "taxation",
+    "content": "Under Section 112A of the Income Tax Act as amended by the Finance Act 2024, Long Term Capital Gains (LTCG) on listed equity shares and equity-oriented mutual funds held for more than 12 months are taxed at 12.5% (increased from 10%) on gains exceeding the exemption threshold of ₹1.25 Lakh (increased from ₹1.0 Lakh) per financial year. No indexation benefit is available."
+  },
+  {
+    "id": "tax_stcg_111a",
+    "topic": "Short Term Capital Gains Tax (Section 111A)",
+    "category": "taxation",
+    "content": "Under Section 111A of the Income Tax Act as amended by the Finance Act 2024, Short Term Capital Gains (STCG) on listed equity shares and equity-oriented mutual funds held for 12 months or less are taxed at a flat rate of 20% (increased from 15%), plus applicable surcharge and 4% Health & Education cess."
+  },
+  {
+    "id": "tax_elss_80c",
+    "topic": "ELSS Tax Savings under Section 80C",
+    "category": "taxation",
+    "content": "Equity Linked Savings Schemes (ELSS) qualify for tax deduction under Section 80C of the Income Tax Act up to ₹1,50,000 per financial year under the Old Tax Regime. ELSS funds carry a mandatory 3-year lock-in period, the shortest among 80C instruments. Capital gains upon redemption after 3 years are treated as LTCG under Section 112A."
+  },
+  {
+    "id": "tax_loss_setoff_70_71",
+    "topic": "Set-off and Carry Forward of Losses (Sections 70 and 71)",
+    "category": "taxation",
+    "content": "Under Sections 70 and 71 of the Income Tax Act: Short Term Capital Losses (STCL) can be set off against both Short Term and Long Term Capital Gains. However, Long Term Capital Losses (LTCL) can only be set off against Long Term Capital Gains. Unabsorbed capital losses can be carried forward for up to 8 assessment years provided the tax return is filed before the due date."
+  },
+  {
+    "id": "mpt_sharpe_ratio",
+    "topic": "Sharpe Ratio and Risk-Adjusted Return",
+    "category": "quantitative_finance",
+    "content": "The Sharpe Ratio quantifies excess return earned per unit of total risk (standard deviation/volatility). Formula: Sharpe = (E[Rp] - Rf) / sigma_p, where E[Rp] is expected portfolio return, Rf is the risk-free rate (e.g. 6.5% 10-year Indian G-Sec), and sigma_p is portfolio annual volatility. A Sharpe Ratio > 1.0 is good, > 1.5 is strong, and > 2.0 is exceptional."
+  },
+  {
+    "id": "mpt_efficient_frontier",
+    "topic": "Markowitz Modern Portfolio Theory & Efficient Frontier",
+    "category": "quantitative_finance",
+    "content": "Markowitz Modern Portfolio Theory (MPT) constructs an optimal investment portfolio by maximizing expected return for a given level of risk. The Efficient Frontier is the set of optimal portfolios offering the highest return for a given variance. In FinBot, this is solved via convex quadratic programming using SciPy's SLSQP algorithm subject to full-investment (sum w_i = 1) and no-short-sales (w_i >= 0) constraints."
+  },
+  {
+    "id": "risk_var_95",
+    "topic": "Value at Risk (VaR 95%) and Tail Risk",
+    "category": "quantitative_finance",
+    "content": "Value at Risk (VaR 95%) estimates the maximum anticipated loss over a given timeframe (1 year) at a 95% confidence level under normal market conditions. Parametric formula: VaR_95 = 1.645 * sigma_p - mu_p. For multi-year horizons T, the square-root time scaling rule applies: VaR_95(T) = 1.645 * sigma_p * sqrt(T) - mu_p * T."
+  },
+  {
+    "id": "portfolio_rebalancing",
+    "topic": "Portfolio Rebalancing Strategy and Drag",
+    "category": "asset_allocation",
+    "content": "Portfolio rebalancing resets drifted asset class weights back to institutional target allocations. FinBot uses threshold rebalancing: when an asset drifts by >5% from target, rebalancing triggers. Annual rebalancing models a 0.1% transaction fee drag (brokerage, STT, exchange turnover fees) to reflect real-world execution friction."
+  },
+  {
+    "id": "sebi_categorization_equity",
+    "topic": "SEBI Mutual Fund Categorization Guidelines",
+    "category": "regulatory",
+    "content": "SEBI mandates specific asset allocation thresholds for mutual funds: Large Cap Funds must invest at least 80% in top 100 companies by market cap; Mid Cap Funds must invest at least 65% in 101st-250th companies; Small Cap Funds must invest at least 65% in 251st company onwards; Flexi Cap Funds must hold at least 65% in equity across market caps dynamically."
+  },
+  {
+    "id": "marketprobe_alpha_gating",
+    "topic": "MarketProbe Bayesian ML Alpha Gating",
+    "category": "machine_learning",
+    "content": "MarketProbe's XGBoost Alpha Gating model evaluates influencer and brokerage trade calls. By assessing empirical creator win-rate shrinkage, risk-to-reward ratios, stoploss distance, and SEBI registration status, the model filters trades to boost realized win rate from 40.28% baseline to 75.00% on high-conviction (>=60%) recommendations."
+  }
+]

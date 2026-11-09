@@ -131,5 +131,19 @@ class TestFinBotQuantSuite(unittest.TestCase):
         self.assertGreater(len(creators), 0)
         self.assertIn("win_rate_pct", creators[0])
 
+    def test_rag_vector_search(self):
+        """
+        Verifies FAISS vector semantic search and RAG knowledge retrieval.
+        """
+        from app.services.rag_service import search_knowledge_base
+        # Query matching LTCG section 112A
+        matches = search_knowledge_base("LTCG capital gains tax on mutual funds", top_k=2)
+        self.assertGreater(len(matches), 0)
+        self.assertIn("112A", matches[0]["content"])
+
+        # Query off-domain should return 0 matches
+        off_domain = search_knowledge_base("photosynthesis plant cell biology", top_k=2)
+        self.assertEqual(len(off_domain), 0)
+
 if __name__ == "__main__":
     unittest.main()

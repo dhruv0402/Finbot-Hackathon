@@ -1,14 +1,49 @@
 import os
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 LLAMA_API_KEY = os.getenv("LLAMA_API_KEY", "")
 LLAMA_API_URL = os.getenv("LLAMA_API_URL", "http://localhost:11434/api/generate")
 DEFAULT_MODEL = os.getenv("LLAMA_MODEL", "llama3.1:8b")  # Ollama-style model name
+
+async def generate_gemini_response(prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
+    """
+    Direct high-efficiency Gemini 1.5/2.0 Flash integration using Google Generative Language REST API.
+    """
+    if not GEMINI_API_KEY:
+        return None
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        contents = []
+        if system_instruction:
+            contents.append({"role": "user", "parts": [{"text": f"System Instructions: {system_instruction}"}]})
+            contents.append({"role": "model", "parts": [{"text": "Understood. I will act strictly according to these instructions."}]})
+        contents.append({"role": "user", "parts": [{"text": prompt}]})
+
+        payload = {
+            "contents": contents,
+            "generationConfig": {
+                "temperature": 0.2,
+                "maxOutputTokens": 512
+            }
+        }
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(url, json=payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "").strip()
+    except Exception as e:
+        print("Gemini API notice:", e)
+    return None
 
 class LlamaClient:
     # --- BUG 1 FIX ---
@@ -272,11 +307,53 @@ async def classify_intent_and_extract(message: str) -> Dict[str, Any]:
 
 async def answer_general_question(message: str) -> str:
     """
-    Answer financial advisory questions using LLM or rule-based institutional knowledge fallback.
+    Answers questions using Hybrid Vector RAG + Gemini Flash (with grounded deterministic fallback).
     """
+    from app.services.rag_service import search_knowledge_base
+
+    # 1. Query Vector RAG Knowledge Base (FAISS)
+    context_chunks = search_knowledge_base(message, top_k=2)
+
+    # If query is completely off-domain (e.g. "photosynthesis") and has no vector similarity
+    msg_lower = message.lower()
+    FINANCIAL_TOPICS = [
+        "invest", "stock", "portfolio", "share", "mutual fund", "sip", "debt", "bond",
+        "gold", "sharpe", "var", "value at risk", "rebalance", "crypto", "tax", "elss",
+        "equity", "nifty", "sensex", "return", "cagr", "dividend", "etf", "capital",
+        "risk", "drawdown", "loss", "profit", "wealth", "asset", "inflation", "market",
+        "finance", "fund", "money", "ltcg", "stcg", "sebi", "80c", "112a", "111a"
+    ]
+    is_finance_related = bool(context_chunks) or any(k in msg_lower for k in FINANCIAL_TOPICS)
+
+    if not is_finance_related:
+        return (
+            "FinBot AI is an institutional wealth management and quantitative finance advisor. "
+            "I specialize in asset allocation, portfolio risk modeling, tax optimization, and NSE/BSE market analysis. "
+            "Please ask a question related to investing, personal finance, or portfolio strategy!"
+        )
+
+    # 2. Try Gemini 1.5 Flash with RAG Context if API key provided
+    if GEMINI_API_KEY:
+        context_str = ""
+        if context_chunks:
+            context_str = "Verified Regulatory & Market Context:\n" + "\n".join([f"- {c['topic']}: {c['content']}" for c in context_chunks])
+        
+        system_instruction = (
+            "You are FinBot, an institutional AI financial advisor specializing in Indian markets (NSE/BSE). "
+            "Answer concisely with exact figures, citing Indian tax laws (Finance Act 2024) or quant formulas when applicable."
+        )
+        prompt = f"{context_str}\n\nUser Question: {message}\nProvide a concise, quantitative answer (under 120 words):"
+        gemini_ans = await generate_gemini_response(prompt, system_instruction=system_instruction)
+        if gemini_ans:
+            return gemini_ans
+
+    # 3. Try Local Ollama / Llama if running
     try:
         escaped = message.replace('"', '\\"')
-        prompt = f"You are FinBot, an institutional AI financial advisor. Answer concisely with concrete data: \"{escaped}\""
+        rag_context = ""
+        if context_chunks:
+            rag_context = f" Context: {context_chunks[0]['content']}"
+        prompt = f"You are FinBot, an institutional AI financial advisor. Answer concisely with concrete data: \"{escaped}\".{rag_context}"
         client = get_llama_client()
         raw = await client.generate(prompt, max_tokens=256)
         text = raw.strip()
@@ -287,22 +364,10 @@ async def answer_general_question(message: str) -> str:
     except Exception:
         pass
 
-    msg_lower = message.lower()
-
-    FINANCIAL_TOPICS = [
-        "invest", "stock", "portfolio", "share", "mutual fund", "sip", "debt", "bond",
-        "gold", "sharpe", "var", "value at risk", "rebalance", "crypto", "tax", "elss",
-        "equity", "nifty", "sensex", "return", "cagr", "dividend", "etf", "capital",
-        "risk", "drawdown", "loss", "profit", "wealth", "asset", "inflation", "market"
-    ]
-    is_finance_related = any(k in msg_lower for k in FINANCIAL_TOPICS)
-
-    if not is_finance_related:
-        return (
-            "FinBot AI is an institutional wealth management and quantitative finance advisor. "
-            f"I specialize in asset allocation, portfolio risk modeling, tax optimization, and NSE/BSE market analysis. "
-            "Please ask a question related to investing, personal finance, or portfolio strategy!"
-        )
+    # 4. Grounded Extractive Fallback: Use top RAG context chunk directly!
+    if context_chunks:
+        top_chunk = context_chunks[0]
+        return f"{top_chunk['content']}"
 
     if "sharpe" in msg_lower:
         return "The Sharpe Ratio measures risk-adjusted return by dividing portfolio excess return over the risk-free rate by annual volatility. A Sharpe Ratio above 1.5 indicates exceptional risk-adjusted performance."
@@ -316,8 +381,8 @@ async def answer_general_question(message: str) -> str:
         return "Equity Linked Savings Schemes (ELSS) offer tax deductions under Section 80C up to ₹1.5 Lakhs with a 3-year lock-in period, providing higher historical returns than standard PPF."
     else:
         return (
-            f"FinBot Quantitative Advisory: To evaluate allocation strategies, historical crisis drawdowns, "
-            f"and Monte Carlo wealth projections for your financial goals, head to the Portfolio Plan or SIP Wealth Engine tab!"
+            "FinBot Quantitative Advisory: To evaluate allocation strategies, historical crisis drawdowns, "
+            "and Monte Carlo wealth projections for your financial goals, head to the Portfolio Plan or SIP Wealth Engine tab!"
         )
 
 
