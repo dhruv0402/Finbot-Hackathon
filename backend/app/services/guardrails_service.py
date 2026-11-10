@@ -23,7 +23,9 @@ class FinancialGuardrailEngine:
         "gold", "sharpe", "var", "value at risk", "rebalance", "crypto", "tax", "elss",
         "equity", "nifty", "sensex", "return", "cagr", "dividend", "etf", "capital",
         "risk", "drawdown", "loss", "profit", "wealth", "asset", "inflation", "market",
-        "finance", "fund", "money", "ltcg", "stcg", "sebi", "80c", "112a", "111a", "inr"
+        "finance", "fund", "money", "ltcg", "stcg", "sebi", "80c", "112a", "111a", "inr",
+        "analyst", "analhyst", "career", "cfa", "frm", "nism", "roadmap", "study",
+        "learn", "quant", "trader", "trading", "valuation", "economics", "accounting"
     }
 
     PROMPT_INJECTION_PATTERNS = [
